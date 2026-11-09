@@ -2,209 +2,450 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EarnTask</title>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: Arial, sans-serif;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EarnTask</title>
 
-        body {
-            background: #f5f7f6;
-            color: #172b24;
-            padding: 20px;
-        }
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
-        header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 25px;
-        }
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
-        .logo {
-            font-size: 23px;
-            font-weight: bold;
-            color: #16845b;
-        }
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f7fb;
+      color: #172033;
+      padding-bottom: 90px;
+    }
 
-        .profile {
-            background: #e4f3eb;
-            padding: 10px;
-            border-radius: 50%;
-        }
+    header {
+      background: white;
+      padding: 22px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #edf0f5;
+    }
 
-        .balance {
-            background: #16845b;
-            color: white;
-            padding: 24px;
-            border-radius: 16px;
-            margin-bottom: 25px;
-        }
+    .logo {
+      font-size: 23px;
+      font-weight: 800;
+      color: #176b52;
+    }
 
-        .balance p {
-            font-size: 14px;
-            opacity: 0.85;
-        }
+    .avatar {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: #e2f3eb;
+      color: #176b52;
+      display: grid;
+      place-items: center;
+      font-weight: bold;
+    }
 
-        .balance h1 {
-            font-size: 32px;
-            margin-top: 10px;
-        }
+    main {
+      max-width: 600px;
+      margin: auto;
+      padding: 22px 18px;
+    }
 
-        .stats {
-            display: flex;
-            gap: 12px;
-            margin-bottom: 30px;
-        }
+    .welcome {
+      margin-bottom: 22px;
+    }
 
-        .stat {
-            background: white;
-            padding: 18px;
-            border-radius: 13px;
-            flex: 1;
-        }
+    .welcome h2 {
+      font-size: 23px;
+      margin-bottom: 7px;
+    }
 
-        .stat p {
-            color: #78857e;
-            font-size: 12px;
-        }
+    .welcome p {
+      color: #788397;
+      font-size: 14px;
+    }
 
-        .stat h3 {
-            margin-top: 8px;
-            font-size: 20px;
-        }
+    .balance {
+      background: #176b52;
+      color: white;
+      border-radius: 17px;
+      padding: 23px;
+      margin-bottom: 20px;
+    }
 
-        .section-title {
-            font-size: 19px;
-            margin-bottom: 15px;
-        }
+    .balance p {
+      opacity: .8;
+      font-size: 14px;
+    }
 
-        .task {
-            background: white;
-            padding: 18px;
-            border-radius: 14px;
-            margin-bottom: 14px;
-        }
+    .balance h1 {
+      font-size: 32px;
+      margin: 10px 0;
+    }
 
-        .task h3 {
-            font-size: 16px;
-            margin-bottom: 8px;
-        }
+    .stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 13px;
+      margin-bottom: 25px;
+    }
 
-        .task p {
-            color: #7b8780;
-            font-size: 13px;
-            margin-bottom: 15px;
-        }
+    .stat, .card {
+      background: white;
+      padding: 18px;
+      border-radius: 14px;
+      border: 1px solid #edf0f5;
+    }
 
-        .reward {
-            color: #16845b;
-            font-weight: bold;
-            margin-bottom: 13px;
-        }
+    .stat p, .muted {
+      color: #788397;
+      font-size: 13px;
+    }
 
-        button {
-            width: 100%;
-            padding: 13px;
-            border: none;
-            border-radius: 9px;
-            background: #16845b;
-            color: white;
-            font-size: 14px;
-            font-weight: bold;
-            cursor: pointer;
-        }
+    .stat h3 {
+      font-size: 23px;
+      margin-top: 8px;
+    }
 
-        button:disabled {
-            background: #aab7b0;
-        }
+    .section-title {
+      font-size: 18px;
+      margin-bottom: 14px;
+    }
 
-        .footer {
-            text-align: center;
-            color: #929b96;
-            font-size: 12px;
-            margin-top: 30px;
-        }
-    </style>
+    .task {
+      background: white;
+      padding: 18px;
+      border: 1px solid #edf0f5;
+      border-radius: 14px;
+      margin-bottom: 13px;
+    }
+
+    .task h3 {
+      font-size: 16px;
+      margin-bottom: 8px;
+    }
+
+    .task p {
+      font-size: 13px;
+      color: #788397;
+      line-height: 1.5;
+      margin-bottom: 13px;
+    }
+
+    .reward {
+      color: #176b52;
+      font-weight: bold;
+      margin-bottom: 13px;
+    }
+
+    button {
+      border: none;
+      cursor: pointer;
+      border-radius: 9px;
+      padding: 12px 16px;
+      font-weight: bold;
+      font-size: 14px;
+    }
+
+    .primary {
+      background: #176b52;
+      color: white;
+      width: 100%;
+    }
+
+    .secondary {
+      background: #e2f3eb;
+      color: #176b52;
+      width: 100%;
+    }
+
+    .profile-row {
+      padding: 15px 0;
+      border-bottom: 1px solid #edf0f5;
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      font-size: 14px;
+    }
+
+    .profile-row span:first-child {
+      color: #788397;
+    }
+
+    .profile-row span:last-child {
+      text-align: right;
+      overflow-wrap: anywhere;
+    }
+
+    .notice {
+      background: #fff8e7;
+      color: #87651b;
+      padding: 13px;
+      border-radius: 10px;
+      font-size: 12px;
+      line-height: 1.5;
+      margin-top: 15px;
+    }
+
+    .page {
+      display: none;
+    }
+
+    .page.active {
+      display: block;
+    }
+
+    nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: white;
+      border-top: 1px solid #edf0f5;
+      display: flex;
+      justify-content: space-around;
+      padding: 12px 5px calc(12px + env(safe-area-inset-bottom));
+      z-index: 10;
+    }
+
+    nav button {
+      background: transparent;
+      color: #8993a5;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+      font-size: 12px;
+      min-width: 75px;
+    }
+
+    nav button.active {
+      color: #176b52;
+    }
+
+    nav .nav-icon {
+      font-size: 20px;
+    }
+
+    footer {
+      text-align: center;
+      color: #9aa3b2;
+      font-size: 11px;
+      padding: 25px 0;
+    }
+  </style>
 </head>
 
 <body>
 
-    <header>
-        <div class="logo">◆ EarnTask</div>
-        <div class="profile">👤</div>
-    </header>
+<header>
+  <div class="logo">◆ EarnTask</div>
+  <div class="avatar" id="avatar">U</div>
+</header>
+
+<main>
+
+  <!-- HOME -->
+  <section id="home" class="page active">
+
+    <div class="welcome">
+      <h2 id="welcome">Welcome to EarnTask!</h2>
+      <p>Complete tasks and track your progress.</p>
+    </div>
 
     <div class="balance">
-        <p>Available Balance</p>
-        <h1>0.00 USDT</h1>
-        <p style="margin-top: 8px;">Your task earnings</p>
+      <p>Available Balance</p>
+      <h1>0.00 USDT</h1>
+      <p>Your task earnings</p>
     </div>
 
     <div class="stats">
-        <div class="stat">
-            <p>Completed Tasks</p>
-            <h3 id="completed">0</h3>
-        </div>
+      <div class="stat">
+        <p>Completed Tasks</p>
+        <h3>0</h3>
+      </div>
 
-        <div class="stat">
-            <p>Available Tasks</p>
-            <h3>2</h3>
-        </div>
+      <div class="stat">
+        <p>Available Tasks</p>
+        <h3>2</h3>
+      </div>
     </div>
+
+    <h3 class="section-title">Getting Started</h3>
+
+    <div class="card">
+      <h3>How EarnTask works</h3>
+      <p class="muted" style="line-height:1.8; margin-top:10px;">
+        1. Browse available tasks.<br>
+        2. Choose a task.<br>
+        3. Complete the activity.<br>
+        4. Submit your proof.<br>
+        5. Wait for your submission to be reviewed.
+      </p>
+    </div>
+
+  </section>
+
+  <!-- TASKS -->
+  <section id="tasks" class="page">
 
     <h2 class="section-title">Available Tasks</h2>
 
     <div class="task">
-        <h3>Task 01</h3>
-        <p>Complete the first EarnTask activity and submit your proof.</p>
-        <div class="reward">Reward: 0.50 USDT</div>
-        <button onclick="submitTask('Task 01')">Start Task</button>
+      <h3>Task 01</h3>
+      <p>Complete the first EarnTask activity and submit your proof.</p>
+      <div class="reward">Reward: 0.50 USDT</div>
+      <button class="primary" onclick="submitTask(1)">
+        Start Task
+      </button>
     </div>
 
     <div class="task">
-        <h3>Task 02</h3>
-        <p>Complete the second EarnTask activity and submit your proof.</p>
-        <div class="reward">Reward: 1.00 USDT</div>
-        <button onclick="submitTask('Task 02')">Start Task</button>
+      <h3>Task 02</h3>
+      <p>Complete the second EarnTask activity and submit your proof.</p>
+      <div class="reward">Reward: 1.00 USDT</div>
+      <button class="primary" onclick="submitTask(2)">
+        Start Task
+      </button>
     </div>
 
-    <div class="footer">
-        EarnTask © 2026
+    <div class="notice">
+      Rewards shown are proposed task rewards. Submissions require review;
+      no balance or payment is credited automatically.
     </div>
 
-    <script>
-        const tg = window.Telegram.WebApp;
-        tg.ready();
-        tg.expand();
+  </section>
 
-        let completed = 0;
+  <!-- PROFILE -->
+  <section id="profile" class="page">
 
-        function submitTask(task) {
-            const proof = prompt("Enter your task proof:");
+    <h2 class="section-title">My Profile</h2>
 
-            if (!proof || !proof.trim()) {
-                return;
-            }
+    <div class="card">
 
-            if (tg.initData) {
-                tg.sendData(JSON.stringify({
-                    task: task,
-                    proof: proof.trim()
-                }));
+      <div class="profile-row">
+        <span>Username</span>
+        <span id="username">@username</span>
+      </div>
 
-                alert("Your submission has been sent.");
-            } else {
-                alert("Preview mode: connect this app to Telegram to submit your proof.");
-            }
-        }
-    </script>
+      <div class="profile-row">
+        <span>First name</span>
+        <span id="firstname">User</span>
+      </div>
+
+      <div class="profile-row">
+        <span>Telegram ID</span>
+        <span id="telegramid">Not available</span>
+      </div>
+
+      <div class="profile-row">
+        <span>Completed tasks</span>
+        <span>0</span>
+      </div>
+
+      <div class="profile-row">
+        <span>Account</span>
+        <span>Active</span>
+      </div>
+
+    </div>
+
+    <div class="notice">
+      Your Telegram account information is displayed here.
+    </div>
+
+  </section>
+
+  <footer>EarnTask © 2026</footer>
+
+</main>
+
+<!-- BOTTOM NAVIGATION -->
+<nav>
+  <button class="active" onclick="showPage('home', this)">
+    <span class="nav-icon">⌂</span>
+    Home
+  </button>
+
+  <button onclick="showPage('tasks', this)">
+    <span class="nav-icon">▤</span>
+    Tasks
+  </button>
+
+  <button onclick="showPage('profile', this)">
+    <span class="nav-icon">♙</span>
+    Profile
+  </button>
+</nav>
+
+<script>
+  const tg = window.Telegram?.WebApp;
+
+  if (tg) {
+    tg.ready();
+    tg.expand();
+  }
+
+  const user = tg?.initDataUnsafe?.user;
+
+  if (user) {
+    const name = user.first_name || "User";
+    const username = user.username
+      ? "@" + user.username
+      : name;
+
+    document.getElementById("welcome").textContent =
+      "Welcome, " + name + "!";
+
+    document.getElementById("username").textContent = username;
+    document.getElementById("firstname").textContent = name;
+    document.getElementById("telegramid").textContent = user.id;
+    document.getElementById("avatar").textContent =
+      name.charAt(0).toUpperCase();
+  }
+
+  function showPage(page, button) {
+    document.querySelectorAll(".page").forEach(section => {
+      section.classList.remove("active");
+    });
+
+    document.getElementById(page).classList.add("active");
+
+    document.querySelectorAll("nav button").forEach(btn => {
+      btn.classList.remove("active");
+    });
+
+    button.classList.add("active");
+
+    window.scrollTo(0, 0);
+  }
+
+  function submitTask(taskNumber) {
+    const proof = prompt(
+      "Enter your task proof or a link to your proof:"
+    );
+
+    if (!proof || !proof.trim()) {
+      alert("Please enter your proof.");
+      return;
+    }
+
+    if (tg && tg.sendData) {
+      tg.sendData(JSON.stringify({
+        type: "task_submission",
+        task_id: taskNumber,
+        proof: proof.trim()
+      }));
+
+      alert("Your proof has been submitted to Telegram.");
+    } else {
+      alert("Open EarnTask inside Telegram to submit your proof.");
+    }
+  }
+</script>
 
 </body>
 </html>
