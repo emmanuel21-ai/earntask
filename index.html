@@ -1,450 +1,855 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>EarnTask</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EarnTask</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
 
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
 
-  <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
+:root {
+  --primary: #2563eb;
+  --dark: #172033;
+  --muted: #788397;
+  --bg: #f5f7fb;
+  --border: #e8edf4;
+  --green: #16a36a;
+}
 
-    body {
-      font-family: Arial, sans-serif;
-      background: #f5f7fb;
-      color: #172033;
-      padding-bottom: 90px;
-    }
+body {
+  font-family: Arial, sans-serif;
+  background: var(--bg);
+  color: var(--dark);
+  padding-bottom: 90px;
+}
 
-    header {
-      background: white;
-      padding: 22px 20px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-bottom: 1px solid #edf0f5;
-    }
+header {
+  background: white;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border);
+}
 
-    .logo {
-      font-size: 23px;
-      font-weight: 800;
-      color: #176b52;
-    }
+.logo {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--primary);
+}
 
-    .avatar {
-      width: 38px;
-      height: 38px;
-      border-radius: 50%;
-      background: #e2f3eb;
-      color: #176b52;
-      display: grid;
-      place-items: center;
-      font-weight: bold;
-    }
+.header-profile {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: #e8efff;
+  color: var(--primary);
+  display: grid;
+  place-items: center;
+  font-weight: bold;
+}
 
-    main {
-      max-width: 600px;
-      margin: auto;
-      padding: 22px 18px;
-    }
+main {
+  padding: 18px;
+  max-width: 650px;
+  margin: auto;
+}
 
-    .welcome {
-      margin-bottom: 22px;
-    }
+.page {
+  display: none;
+}
 
-    .welcome h2 {
-      font-size: 23px;
-      margin-bottom: 7px;
-    }
+.page.active {
+  display: block;
+}
 
-    .welcome p {
-      color: #788397;
-      font-size: 14px;
-    }
+.welcome {
+  margin: 12px 0 20px;
+}
 
-    .balance {
-      background: #176b52;
-      color: white;
-      border-radius: 17px;
-      padding: 23px;
-      margin-bottom: 20px;
-    }
+.welcome h2 {
+  font-size: 23px;
+  margin-bottom: 7px;
+}
 
-    .balance p {
-      opacity: .8;
-      font-size: 14px;
-    }
+.welcome p {
+  color: var(--muted);
+  line-height: 1.5;
+}
 
-    .balance h1 {
-      font-size: 32px;
-      margin: 10px 0;
-    }
+.balance-card {
+  background: linear-gradient(135deg, #2563eb, #1746b5);
+  color: white;
+  border-radius: 18px;
+  padding: 23px;
+  margin-bottom: 20px;
+}
 
-    .stats {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 13px;
-      margin-bottom: 25px;
-    }
+.balance-card p {
+  opacity: .85;
+  font-size: 14px;
+}
 
-    .stat, .card {
-      background: white;
-      padding: 18px;
-      border-radius: 14px;
-      border: 1px solid #edf0f5;
-    }
+.balance {
+  font-size: 32px;
+  font-weight: 800;
+  margin: 10px 0 18px;
+}
 
-    .stat p, .muted {
-      color: #788397;
-      font-size: 13px;
-    }
+button {
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 700;
+}
 
-    .stat h3 {
-      font-size: 23px;
-      margin-top: 8px;
-    }
+.withdraw-btn {
+  background: white;
+  color: var(--primary);
+  padding: 11px 18px;
+  border-radius: 9px;
+}
 
-    .section-title {
-      font-size: 18px;
-      margin-bottom: 14px;
-    }
+.card {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 15px;
+  padding: 18px;
+  margin-bottom: 15px;
+}
 
-    .task {
-      background: white;
-      padding: 18px;
-      border: 1px solid #edf0f5;
-      border-radius: 14px;
-      margin-bottom: 13px;
-    }
+.card h3 {
+  margin-bottom: 9px;
+}
 
-    .task h3 {
-      font-size: 16px;
-      margin-bottom: 8px;
-    }
+.card p {
+  color: var(--muted);
+  line-height: 1.6;
+  font-size: 14px;
+}
 
-    .task p {
-      font-size: 13px;
-      color: #788397;
-      line-height: 1.5;
-      margin-bottom: 13px;
-    }
+.section-title {
+  font-size: 21px;
+  margin: 10px 0 17px;
+}
 
-    .reward {
-      color: #176b52;
-      font-weight: bold;
-      margin-bottom: 13px;
-    }
+.task-card {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 15px;
+  padding: 18px;
+  margin-bottom: 17px;
+}
 
-    button {
-      border: none;
-      cursor: pointer;
-      border-radius: 9px;
-      padding: 12px 16px;
-      font-weight: bold;
-      font-size: 14px;
-    }
+.task-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
 
-    .primary {
-      background: #176b52;
-      color: white;
-      width: 100%;
-    }
+.task-number {
+  color: var(--primary);
+  font-size: 12px;
+  font-weight: 800;
+}
 
-    .secondary {
-      background: #e2f3eb;
-      color: #176b52;
-      width: 100%;
-    }
+.reward {
+  color: var(--green);
+  background: #eaf9f1;
+  padding: 7px 10px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: bold;
+}
 
-    .profile-row {
-      padding: 15px 0;
-      border-bottom: 1px solid #edf0f5;
-      display: flex;
-      justify-content: space-between;
-      gap: 12px;
-      font-size: 14px;
-    }
+.task-card h3 {
+  font-size: 18px;
+  margin-bottom: 8px;
+}
 
-    .profile-row span:first-child {
-      color: #788397;
-    }
+.task-card p {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.6;
+  margin-bottom: 13px;
+}
 
-    .profile-row span:last-child {
-      text-align: right;
-      overflow-wrap: anywhere;
-    }
+.primary-btn {
+  display: block;
+  width: 100%;
+  padding: 13px;
+  background: var(--primary);
+  color: white;
+  border-radius: 9px;
+  margin-top: 12px;
+}
 
-    .notice {
-      background: #fff8e7;
-      color: #87651b;
-      padding: 13px;
-      border-radius: 10px;
-      font-size: 12px;
-      line-height: 1.5;
-      margin-top: 15px;
-    }
+.secondary-btn {
+  display: block;
+  width: 100%;
+  padding: 12px;
+  background: #edf3ff;
+  color: var(--primary);
+  border-radius: 9px;
+  margin-top: 10px;
+}
 
-    .page {
-      display: none;
-    }
+.video-section {
+  background: #f6f8fc;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px;
+  margin: 15px 0;
+}
 
-    .page.active {
-      display: block;
-    }
+.video-section h4 {
+  font-size: 14px;
+  margin-bottom: 10px;
+}
 
-    nav {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      background: white;
-      border-top: 1px solid #edf0f5;
-      display: flex;
-      justify-content: space-around;
-      padding: 12px 5px calc(12px + env(safe-area-inset-bottom));
-      z-index: 10;
-    }
+video {
+  width: 100%;
+  display: block;
+  border-radius: 9px;
+  background: #111;
+}
 
-    nav button {
-      background: transparent;
-      color: #8993a5;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 5px;
-      font-size: 12px;
-      min-width: 75px;
-    }
+.instructions {
+  background: #f7f9fc;
+  border-radius: 10px;
+  padding: 14px;
+  margin: 12px 0;
+}
 
-    nav button.active {
-      color: #176b52;
-    }
+.instructions h4 {
+  margin-bottom: 10px;
+  font-size: 14px;
+}
 
-    nav .nav-icon {
-      font-size: 20px;
-    }
+.instructions ol {
+  padding-left: 20px;
+}
 
-    footer {
-      text-align: center;
-      color: #9aa3b2;
-      font-size: 11px;
-      padding: 25px 0;
-    }
-  </style>
+.instructions li {
+  color: #536075;
+  font-size: 14px;
+  line-height: 1.7;
+  margin-bottom: 5px;
+}
+
+.profile-item {
+  padding: 13px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.profile-item:last-child {
+  border-bottom: none;
+}
+
+.profile-item small {
+  display: block;
+  color: var(--muted);
+  margin-bottom: 5px;
+}
+
+.profile-item strong {
+  font-size: 14px;
+  word-break: break-word;
+}
+
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-group label {
+  display: block;
+  font-size: 14px;
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+
+.form-group input,
+.form-group textarea {
+  width: 100%;
+  padding: 13px;
+  border: 1px solid #dce3ed;
+  border-radius: 9px;
+  font-size: 14px;
+  outline: none;
+  background: white;
+}
+
+.form-group textarea {
+  min-height: 90px;
+  resize: vertical;
+}
+
+.notice {
+  background: #fff8e7;
+  color: #8a6415;
+  border: 1px solid #f4e5bb;
+  padding: 12px;
+  border-radius: 9px;
+  font-size: 13px;
+  line-height: 1.5;
+  margin-bottom: 16px;
+}
+
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: white;
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: space-around;
+  padding: 12px 5px;
+  z-index: 10;
+}
+
+.nav-item {
+  color: #8993a5;
+  text-align: center;
+  font-size: 12px;
+  cursor: pointer;
+  flex: 1;
+}
+
+.nav-item span {
+  display: block;
+  font-size: 19px;
+  margin-bottom: 4px;
+}
+
+.nav-item.active {
+  color: var(--primary);
+  font-weight: bold;
+}
+
+.back-btn {
+  background: none;
+  color: var(--primary);
+  margin-bottom: 15px;
+  font-size: 14px;
+}
+
+.status {
+  display: inline-block;
+  padding: 6px 9px;
+  border-radius: 7px;
+  background: #edf3ff;
+  color: var(--primary);
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.withdraw-summary {
+  background: #edf3ff;
+  border: 1px solid #dce8ff;
+  border-radius: 11px;
+  padding: 14px;
+  margin-bottom: 18px;
+}
+
+.withdraw-summary strong {
+  display: block;
+  color: var(--primary);
+  font-size: 19px;
+  margin-top: 5px;
+}
+
+.withdraw-help {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.5;
+  margin-top: 7px;
+}
+
+</style>
 </head>
 
 <body>
 
 <header>
   <div class="logo">◆ EarnTask</div>
-  <div class="avatar" id="avatar">U</div>
+  <div class="header-profile" id="headerAvatar">U</div>
 </header>
 
 <main>
 
-  <!-- HOME -->
-  <section id="home" class="page active">
+  <!-- HOME PAGE -->
+  <section class="page active" id="home">
 
     <div class="welcome">
-      <h2 id="welcome">Welcome to EarnTask!</h2>
-      <p>Complete tasks and track your progress.</p>
+      <h2>Welcome to EarnTask 👋</h2>
+      <p>Complete activities and submit your proof for review.</p>
     </div>
 
-    <div class="balance">
-      <p>Available Balance</p>
-      <h1>0.00 USDT</h1>
-      <p>Your task earnings</p>
+    <div class="balance-card">
+      <p>Demo Balance</p>
+      <div class="balance">0.00 USDT</div>
+      <button class="withdraw-btn" onclick="showPage('withdrawal')">
+        Withdraw
+      </button>
     </div>
-
-    <div class="stats">
-      <div class="stat">
-        <p>Completed Tasks</p>
-        <h3>0</h3>
-      </div>
-
-      <div class="stat">
-        <p>Available Tasks</p>
-        <h3>2</h3>
-      </div>
-    </div>
-
-    <h3 class="section-title">Getting Started</h3>
 
     <div class="card">
-      <h3>How EarnTask works</h3>
-      <p class="muted" style="line-height:1.8; margin-top:10px;">
-        1. Browse available tasks.<br>
-        2. Choose a task.<br>
-        3. Complete the activity.<br>
-        4. Submit your proof.<br>
-        5. Wait for your submission to be reviewed.
+      <h3>Getting Started</h3>
+      <p>
+        Visit the Tasks page, choose an activity, follow its instructions
+        and submit your proof for review.
       </p>
+      <button class="primary-btn" onclick="showPage('tasks')">
+        View Tasks
+      </button>
+    </div>
+
+    <div class="card">
+      <h3>Your Account</h3>
+      <p>View your Telegram account information and submission details.</p>
+      <button class="secondary-btn" onclick="showPage('profile')">
+        Open Profile
+      </button>
     </div>
 
   </section>
 
-  <!-- TASKS -->
-  <section id="tasks" class="page">
+  <!-- TASKS PAGE -->
+  <section class="page" id="tasks">
 
     <h2 class="section-title">Available Tasks</h2>
 
-    <div class="task">
-      <h3>Task 01</h3>
-      <p>Complete the first EarnTask activity and submit your proof.</p>
-      <div class="reward">Reward: 0.50 USDT</div>
-      <button class="primary" onclick="submitTask(1)">
-        Start Task
+    <!-- TASK 1 -->
+    <div class="task-card">
+
+      <div class="task-top">
+        <span class="task-number">TASK 01</span>
+        <span class="reward">0.40 USDT</span>
+      </div>
+
+      <h3>Complete the First Activity</h3>
+
+      <p>
+        Open the task using the button below. Follow the activity
+        instructions and submit your proof for review.
+      </p>
+
+      <div class="video-section">
+        <h4>Task 01 Video Guide</h4>
+
+        <video controls playsinline preload="metadata">
+          <source src="task1-guide.mp4" type="video/mp4">
+          Your browser does not support video playback.
+        </video>
+
+        <p style="margin-top:10px;">
+          Watch the guide before starting Task 01.
+        </p>
+      </div>
+
+      <button class="primary-btn"
+        onclick="openTask('https://t.me/Crackpot_sport_bot?start=BF2D9C8B')">
+        Start Task 01
       </button>
+
+      <button class="secondary-btn"
+        onclick="openProof('Task 01')">
+        Submit Task 01 Proof
+      </button>
+
     </div>
 
-    <div class="task">
-      <h3>Task 02</h3>
-      <p>Complete the second EarnTask activity and submit your proof.</p>
-      <div class="reward">Reward: 1.00 USDT</div>
-      <button class="primary" onclick="submitTask(2)">
-        Start Task
-      </button>
-    </div>
+    <!-- TASK 2 -->
+    <div class="task-card">
 
-    <div class="notice">
-      Rewards shown are proposed task rewards. Submissions require review;
-      no balance or payment is credited automatically.
+      <div class="task-top">
+        <span class="task-number">TASK 02</span>
+        <span class="reward">0.20 USDT</span>
+      </div>
+
+      <h3>Complete the Second Activity</h3>
+
+      <p>
+        Open the EarnVault activity and follow the steps listed below.
+      </p>
+
+      <div class="instructions">
+        <h4>Task 02 Instructions</h4>
+
+        <ol>
+          <li>Open the EarnVault Mini App using the button below.</li>
+          <li>Claim the available reward in the app.</li>
+          <li>Complete the daily check-in.</li>
+          <li>Complete the available social task.</li>
+          <li>Return to EarnTask and submit your proof for review.</li>
+        </ol>
+      </div>
+
+      <button class="primary-btn"
+        onclick="openTask('https://t.me/EarnVaultApp_bot/App?startapp=8059918348')">
+        Start Task 02
+      </button>
+
+      <button class="secondary-btn"
+        onclick="openProof('Task 02')">
+        Submit Task 02 Proof
+      </button>
+
     </div>
 
   </section>
 
-  <!-- PROFILE -->
-  <section id="profile" class="page">
+  <!-- PROFILE PAGE -->
+  <section class="page" id="profile">
 
     <h2 class="section-title">My Profile</h2>
 
     <div class="card">
 
-      <div class="profile-row">
-        <span>Username</span>
-        <span id="username">@username</span>
+      <div style="text-align:center;padding:12px 0 20px;">
+        <div class="header-profile"
+          id="profileAvatar"
+          style="width:65px;height:65px;margin:auto;font-size:25px;">
+          U
+        </div>
+
+        <h3 id="profileName" style="margin-top:12px;">Telegram User</h3>
+        <p id="profileUsername">@username</p>
       </div>
 
-      <div class="profile-row">
-        <span>First name</span>
-        <span id="firstname">User</span>
+      <div class="profile-item">
+        <small>Username</small>
+        <strong id="usernameValue">Not available</strong>
       </div>
 
-      <div class="profile-row">
-        <span>Telegram ID</span>
-        <span id="telegramid">Not available</span>
+      <div class="profile-item">
+        <small>First Name</small>
+        <strong id="firstNameValue">Not available</strong>
       </div>
 
-      <div class="profile-row">
-        <span>Completed tasks</span>
-        <span>0</span>
+      <div class="profile-item">
+        <small>Telegram ID</small>
+        <strong id="telegramIdValue">Not available</strong>
       </div>
 
-      <div class="profile-row">
-        <span>Account</span>
-        <span>Active</span>
+      <div class="profile-item">
+        <small>Completed Tasks</small>
+        <strong>0</strong>
+      </div>
+
+      <div class="profile-item">
+        <small>Account Status</small>
+        <span class="status">Active</span>
       </div>
 
     </div>
 
-    <div class="notice">
-      Your Telegram account information is displayed here.
+    <div class="card">
+      <h3>About EarnTask</h3>
+      <p>
+        EarnTask allows users to view activities and submit proof
+        for review. Displayed rewards are illustrative until a
+        verified payment system is implemented.
+      </p>
     </div>
 
   </section>
 
-  <footer>EarnTask © 2026</footer>
+  <!-- WITHDRAWAL PAGE -->
+  <section class="page" id="withdrawal">
+
+    <button class="back-btn" onclick="showPage('home')">
+      ← Back to Home
+    </button>
+
+    <h2 class="section-title">Withdraw Funds</h2>
+
+    <div class="card">
+      <div class="withdraw-summary">
+        <p>Minimum withdrawal</p>
+        <strong>2.00 USDT</strong>
+        <p class="withdraw-help">Network: BEP20 (BNB Smart Chain)</p>
+      </div>
+
+      <form id="withdrawForm">
+
+        <div class="form-group">
+          <label for="withdrawAmount">Withdrawal Amount (USDT)</label>
+          <input
+            type="number"
+            id="withdrawAmount"
+            min="2"
+            step="0.01"
+            placeholder="Enter amount (minimum 2 USDT)"
+            required
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="withdrawWallet">BEP20 Wallet Address</label>
+          <input
+            type="text"
+            id="withdrawWallet"
+            placeholder="Enter your BEP20 wallet address"
+            autocomplete="off"
+            required
+          >
+        </div>
+
+        <p class="withdraw-help" style="margin-bottom:14px;">
+          Check that your wallet supports BEP20 before sending your request.
+          Withdrawal requests are reviewed manually.
+        </p>
+
+        <button class="primary-btn" type="submit">
+          Continue to Telegram
+        </button>
+
+      </form>
+    </div>
+
+  </section>
+
+  <!-- PROOF SUBMISSION PAGE -->
+  <section class="page" id="proof">
+
+    <button class="back-btn" onclick="showPage('tasks')">
+      ← Back to Tasks
+    </button>
+
+    <h2 class="section-title">Submit Your Proof</h2>
+
+    <div class="card">
+
+      <p style="margin-bottom:15px;">
+        Selected Task: <strong id="selectedTask">Task 01</strong>
+      </p>
+
+      <div class="notice">
+        This is a frontend demonstration form. It does not upload
+        your proof to a server or confirm a reward.
+      </div>
+
+      <form id="proofForm">
+
+        <div class="form-group">
+          <label for="telegramUsername">Telegram Username</label>
+          <input
+            type="text"
+            id="telegramUsername"
+            placeholder="@yourusername"
+            required
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="proofScreenshot">Upload Screenshot</label>
+          <input
+            type="file"
+            id="proofScreenshot"
+            accept="image/*"
+            required
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="additionalInfo">Additional Information</label>
+          <textarea
+            id="additionalInfo"
+            placeholder="Add any information about your task..."
+          ></textarea>
+        </div>
+
+        <button class="primary-btn" type="submit">
+          Submit Proof
+        </button>
+
+      </form>
+
+    </div>
+
+  </section>
 
 </main>
 
 <!-- BOTTOM NAVIGATION -->
-<nav>
-  <button class="active" onclick="showPage('home', this)">
-    <span class="nav-icon">⌂</span>
+<nav class="bottom-nav">
+
+  <div class="nav-item active" id="nav-home"
+    onclick="showPage('home')">
+    <span>⌂</span>
     Home
-  </button>
+  </div>
 
-  <button onclick="showPage('tasks', this)">
-    <span class="nav-icon">▤</span>
+  <div class="nav-item" id="nav-tasks"
+    onclick="showPage('tasks')">
+    <span>▤</span>
     Tasks
-  </button>
+  </div>
 
-  <button onclick="showPage('profile', this)">
-    <span class="nav-icon">♙</span>
+  <div class="nav-item" id="nav-profile"
+    onclick="showPage('profile')">
+    <span>♙</span>
     Profile
-  </button>
+  </div>
+
 </nav>
 
 <script>
-  const tg = window.Telegram?.WebApp;
 
-  if (tg) {
-    tg.ready();
-    tg.expand();
+const tg = window.Telegram?.WebApp;
+
+if (tg) {
+  tg.ready();
+  tg.expand();
+}
+
+let selectedTaskName = "Task 01";
+
+function showPage(pageName) {
+
+  document.querySelectorAll(".page").forEach(page => {
+    page.classList.remove("active");
+  });
+
+  document.getElementById(pageName).classList.add("active");
+
+  document.querySelectorAll(".nav-item").forEach(item => {
+    item.classList.remove("active");
+  });
+
+  const nav = document.getElementById("nav-" + pageName);
+
+  if (nav) {
+    nav.classList.add("active");
   }
+
+  window.scrollTo(0, 0);
+}
+
+function openTask(url) {
+
+  if (tg && tg.openTelegramLink) {
+    tg.openTelegramLink(url);
+  } else {
+    window.open(url, "_blank");
+  }
+
+}
+
+function openProof(taskName) {
+
+  selectedTaskName = taskName;
+
+  document.getElementById("selectedTask").textContent = taskName;
+
+  showPage("proof");
+}
+
+// Load Telegram profile information
+function loadTelegramProfile() {
 
   const user = tg?.initDataUnsafe?.user;
 
-  if (user) {
-    const name = user.first_name || "User";
-    const username = user.username
-      ? "@" + user.username
-      : name;
-
-    document.getElementById("welcome").textContent =
-      "Welcome, " + name + "!";
-
-    document.getElementById("username").textContent = username;
-    document.getElementById("firstname").textContent = name;
-    document.getElementById("telegramid").textContent = user.id;
-    document.getElementById("avatar").textContent =
-      name.charAt(0).toUpperCase();
+  if (!user) {
+    return;
   }
 
-  function showPage(page, button) {
-    document.querySelectorAll(".page").forEach(section => {
-      section.classList.remove("active");
-    });
+  const firstName = user.first_name || "Telegram User";
 
-    document.getElementById(page).classList.add("active");
+  const username = user.username
+    ? "@" + user.username
+    : "Username unavailable";
 
-    document.querySelectorAll("nav button").forEach(btn => {
-      btn.classList.remove("active");
-    });
+  const initials = firstName.charAt(0).toUpperCase();
 
-    button.classList.add("active");
+  document.getElementById("profileName").textContent = firstName;
+  document.getElementById("profileUsername").textContent = username;
 
-    window.scrollTo(0, 0);
+  document.getElementById("usernameValue").textContent = username;
+  document.getElementById("firstNameValue").textContent = firstName;
+
+  document.getElementById("telegramIdValue").textContent =
+    user.id || "Not available";
+
+  document.getElementById("headerAvatar").textContent = initials;
+  document.getElementById("profileAvatar").textContent = initials;
+
+  const usernameInput = document.getElementById("telegramUsername");
+
+  if (user.username) {
+    usernameInput.value = "@" + user.username;
   }
 
-  function submitTask(taskNumber) {
-    const proof = prompt(
-      "Enter your task proof or a link to your proof:"
-    );
+}
 
-    if (!proof || !proof.trim()) {
-      alert("Please enter your proof.");
-      return;
-    }
+// Proof form
+document.getElementById("proofForm").addEventListener("submit", function(e) {
 
-    if (tg && tg.sendData) {
-      tg.sendData(JSON.stringify({
-        type: "task_submission",
-        task_id: taskNumber,
-        proof: proof.trim()
-      }));
+  e.preventDefault();
 
-      alert("Your proof has been submitted to Telegram.");
-    } else {
-      alert("Open EarnTask inside Telegram to submit your proof.");
-    }
+  const username = document.getElementById("telegramUsername").value.trim();
+  const screenshot = document.getElementById("proofScreenshot").files[0];
+
+  if (!username || !screenshot) {
+    alert("Please enter your Telegram username and select a screenshot.");
+    return;
   }
+
+  alert(
+    "Your form has been checked in this demonstration. " +
+    "Your proof has NOT been uploaded or submitted for review. " +
+    "A backend connection is required."
+  );
+
+});
+
+// Manual withdrawal request
+document.getElementById("withdrawForm").addEventListener("submit", function(e) {
+
+  e.preventDefault();
+
+  const amount = Number(document.getElementById("withdrawAmount").value);
+  const wallet = document.getElementById("withdrawWallet").value.trim();
+
+  if (!Number.isFinite(amount) || amount < 2) {
+    alert("The minimum withdrawal amount is 2 USDT.");
+    return;
+  }
+
+  if (!wallet) {
+    alert("Please enter your BEP20 wallet address.");
+    return;
+  }
+
+  const message =
+    "EarnTask Withdrawal Request\n" +
+    "Amount: " + amount.toFixed(2) + " USDT\n" +
+    "Network: BEP20 (BNB Smart Chain)\n" +
+    "Wallet Address: " + wallet;
+
+  const shareUrl =
+    "https://t.me/share/url?url=&text=" + encodeURIComponent(message);
+
+  if (tg && typeof tg.openTelegramLink === "function") {
+    tg.openTelegramLink(shareUrl);
+  } else {
+    window.open(shareUrl, "_blank", "noopener,noreferrer");
+  }
+
+});
+
+loadTelegramProfile();
+
 </script>
 
 </body>
