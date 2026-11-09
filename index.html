@@ -1,0 +1,210 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EarnTask</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background: #f5f7f6;
+            color: #172b24;
+            padding: 20px;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .logo {
+            font-size: 23px;
+            font-weight: bold;
+            color: #16845b;
+        }
+
+        .profile {
+            background: #e4f3eb;
+            padding: 10px;
+            border-radius: 50%;
+        }
+
+        .balance {
+            background: #16845b;
+            color: white;
+            padding: 24px;
+            border-radius: 16px;
+            margin-bottom: 25px;
+        }
+
+        .balance p {
+            font-size: 14px;
+            opacity: 0.85;
+        }
+
+        .balance h1 {
+            font-size: 32px;
+            margin-top: 10px;
+        }
+
+        .stats {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 30px;
+        }
+
+        .stat {
+            background: white;
+            padding: 18px;
+            border-radius: 13px;
+            flex: 1;
+        }
+
+        .stat p {
+            color: #78857e;
+            font-size: 12px;
+        }
+
+        .stat h3 {
+            margin-top: 8px;
+            font-size: 20px;
+        }
+
+        .section-title {
+            font-size: 19px;
+            margin-bottom: 15px;
+        }
+
+        .task {
+            background: white;
+            padding: 18px;
+            border-radius: 14px;
+            margin-bottom: 14px;
+        }
+
+        .task h3 {
+            font-size: 16px;
+            margin-bottom: 8px;
+        }
+
+        .task p {
+            color: #7b8780;
+            font-size: 13px;
+            margin-bottom: 15px;
+        }
+
+        .reward {
+            color: #16845b;
+            font-weight: bold;
+            margin-bottom: 13px;
+        }
+
+        button {
+            width: 100%;
+            padding: 13px;
+            border: none;
+            border-radius: 9px;
+            background: #16845b;
+            color: white;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        button:disabled {
+            background: #aab7b0;
+        }
+
+        .footer {
+            text-align: center;
+            color: #929b96;
+            font-size: 12px;
+            margin-top: 30px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <div class="logo">◆ EarnTask</div>
+        <div class="profile">👤</div>
+    </header>
+
+    <div class="balance">
+        <p>Available Balance</p>
+        <h1>0.00 USDT</h1>
+        <p style="margin-top: 8px;">Your task earnings</p>
+    </div>
+
+    <div class="stats">
+        <div class="stat">
+            <p>Completed Tasks</p>
+            <h3 id="completed">0</h3>
+        </div>
+
+        <div class="stat">
+            <p>Available Tasks</p>
+            <h3>2</h3>
+        </div>
+    </div>
+
+    <h2 class="section-title">Available Tasks</h2>
+
+    <div class="task">
+        <h3>Task 01</h3>
+        <p>Complete the first EarnTask activity and submit your proof.</p>
+        <div class="reward">Reward: 0.50 USDT</div>
+        <button onclick="submitTask('Task 01')">Start Task</button>
+    </div>
+
+    <div class="task">
+        <h3>Task 02</h3>
+        <p>Complete the second EarnTask activity and submit your proof.</p>
+        <div class="reward">Reward: 1.00 USDT</div>
+        <button onclick="submitTask('Task 02')">Start Task</button>
+    </div>
+
+    <div class="footer">
+        EarnTask © 2026
+    </div>
+
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.ready();
+        tg.expand();
+
+        let completed = 0;
+
+        function submitTask(task) {
+            const proof = prompt("Enter your task proof:");
+
+            if (!proof || !proof.trim()) {
+                return;
+            }
+
+            if (tg.initData) {
+                tg.sendData(JSON.stringify({
+                    task: task,
+                    proof: proof.trim()
+                }));
+
+                alert("Your submission has been sent.");
+            } else {
+                alert("Preview mode: connect this app to Telegram to submit your proof.");
+            }
+        }
+    </script>
+
+</body>
+</html>
