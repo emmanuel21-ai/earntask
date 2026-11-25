@@ -215,6 +215,64 @@ footer {
   padding: 25px 0;
 }
 
+/* REFERRAL SECTION */
+
+.referral-card {
+  margin-top: 14px;
+  padding: 14px;
+  background: white;
+  border: 1px solid #edf0f5;
+  border-radius: 12px;
+}
+
+.referral-card h4 {
+  font-size: 14px;
+  margin-bottom: 5px;
+}
+
+.referral-card p {
+  color: #788397;
+  font-size: 11px;
+  line-height: 1.5;
+  margin-bottom: 10px;
+}
+
+.referral-copy-row {
+  display: flex;
+  gap: 7px;
+  align-items: center;
+}
+
+.referral-link {
+  flex: 1;
+  min-width: 0;
+  padding: 9px;
+  background: #f4f6f8;
+  border: 1px solid #edf0f5;
+  border-radius: 7px;
+  font-size: 10px;
+  color: #465166;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.referral-copy {
+  background: #176b45;
+  color: white;
+  padding: 10px 12px;
+  font-size: 11px;
+  flex-shrink: 0;
+}
+
+.referral-count {
+  margin-top: 9px;
+  font-size: 11px;
+  color: #788397;
+}
+
+/* MODALS */
+
 .proof-modal, .withdraw-modal {
   display: none;
   position: fixed;
@@ -319,7 +377,7 @@ footer {
 
   <div class="balance">
     <p>Available Balance</p>
-    <h1>0.00 USDT</h1>
+    <h1 id="availableBalance">0.00 USDT</h1>
     <div class="balance-actions">
       <p>Your task earnings</p>
       <button class="withdraw-btn" onclick="withdraw()">Withdraw</button>
@@ -330,7 +388,7 @@ footer {
   <div class="stats">
     <div class="stat">
       <p>Completed Tasks</p>
-      <h3>0</h3>
+      <h3 id="completedTasks">0</h3>
     </div>
     <div class="stat">
       <p>Available Tasks</p>
@@ -348,6 +406,41 @@ footer {
       4. Submit your proof.<br>
       5. Wait for review.
     </p>
+  </div>
+
+  <!-- REFERRAL SECTION -->
+  <div class="referral-card">
+    <h4>Referral Bonus</h4>
+
+    <p>
+      Invite friends and earn $0.20 USDT when they
+      complete Task 01 and their proof is approved.
+      Your bonus goes directly into your available balance.
+    </p>
+
+    <div class="referral-copy-row">
+      <div class="referral-link" id="referralLink">
+        Loading referral link...
+      </div>
+
+      <button class="referral-copy" id="copyReferralButton" onclick="copyReferral()">
+        Copy
+      </button>
+    </div>
+
+    <div class="referral-count" id="referralCount">
+      Total referrals: 0
+    </div>
+
+    <div class="referral-count" id="qualifiedReferrals">
+      Successful referrals: 0
+    </div>
+
+    <div class="referral-count" id="referralEarnings">
+      Referral earnings: $0.00 USDT
+    </div>
+
+    <div class="referral-count" id="referralMessage"></div>
   </div>
 </section>
 
@@ -408,7 +501,7 @@ footer {
     <div class="profile-row"><span>Username</span><span id="username">@username</span></div>
     <div class="profile-row"><span>First name</span><span id="firstname">User</span></div>
     <div class="profile-row"><span>Telegram ID</span><span id="telegramid">Not available</span></div>
-    <div class="profile-row"><span>Completed tasks</span><span>0</span></div>
+    <div class="profile-row"><span>Completed tasks</span><span id="profileCompletedTasks">0</span></div>
     <div class="profile-row"><span>Account</span><span>Active</span></div>
   </div>
   <div class="notice">Your Telegram account information is displayed here.</div>
@@ -505,6 +598,7 @@ const tg = window.Telegram?.WebApp;
 if (tg) {
   tg.ready();
   tg.expand();
+
   try {
     tg.setHeaderColor("#f4f6f8");
     tg.setBackgroundColor("#f4f6f8");
@@ -514,6 +608,11 @@ if (tg) {
 }
 
 const user = tg?.initDataUnsafe?.user;
+
+// IMPORTANT:
+// Replace this with your deployed backend URL before publishing.
+// Keep localhost only for local testing.
+const API_BASE = "http://127.0.0.1:8000";
 
 if (user) {
   const name = user.first_name || "User";
@@ -525,7 +624,8 @@ if (user) {
   document.getElementById("username").textContent = username;
   document.getElementById("firstname").textContent = name;
   document.getElementById("telegramid").textContent = user.id;
-  document.getElementById("avatar").textContent = name.charAt(0).toUpperCase();
+  document.getElementById("avatar").textContent =
+    name.charAt(0).toUpperCase();
 }
 
 function showPage(page, button) {
@@ -567,8 +667,6 @@ taskVideo.addEventListener("error", function() {
   console.log("Task 01 video could not be loaded. Check the MP4 file and its GitHub upload.");
 });
 
-const API_BASE = "http://127.0.0.1:8000";
-
 function openProof(taskId, taskName) {
   document.getElementById("proofForm").reset();
   document.getElementById("proofTaskId").value = taskId;
@@ -580,6 +678,166 @@ function openProof(taskId, taskName) {
 function closeProof() {
   document.getElementById("proofModal").classList.remove("show");
 }
+
+
+// ==================================================
+// LOAD AVAILABLE BALANCE
+// ==================================================
+
+async function loadBalance() {
+  if (!tg?.initData) return;
+
+  try {
+    const response = await fetch(`${API_BASE}/api/account`, {
+      headers: {
+        "X-Telegram-Init-Data": tg.initData
+      }
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(result.detail || "Could not load balance.");
+    }
+
+    document.getElementById("availableBalance").textContent =
+      `${Number(result.balance || 0).toFixed(2)} USDT`;
+
+  } catch (error) {
+    console.error("Balance loading error:", error);
+  }
+}
+
+
+// ==================================================
+// LOAD REFERRAL INFORMATION
+// ==================================================
+
+async function loadReferral() {
+  const linkElement = document.getElementById("referralLink");
+  const countElement = document.getElementById("referralCount");
+  const qualifiedElement = document.getElementById("qualifiedReferrals");
+  const earningsElement = document.getElementById("referralEarnings");
+  const messageElement = document.getElementById("referralMessage");
+
+  if (!tg?.initData) {
+    linkElement.textContent = "Open EarnTask through Telegram";
+    return;
+  }
+
+  try {
+    const response = await fetch(`${API_BASE}/api/referrals`, {
+      headers: {
+        "X-Telegram-Init-Data": tg.initData
+      }
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(result.detail || "Could not load referral information.");
+    }
+
+    linkElement.textContent = result.referral_link;
+
+    countElement.textContent =
+      `Total referrals: ${result.total_referrals || 0}`;
+
+    qualifiedElement.textContent =
+      `Successful referrals: ${result.qualified_referrals || 0}`;
+
+    earningsElement.textContent =
+      `Referral earnings: $${Number(result.referral_earnings || 0).toFixed(2)} USDT`;
+
+    messageElement.textContent = "";
+
+  } catch (error) {
+    linkElement.textContent = "Referral link unavailable";
+    messageElement.textContent = error.message;
+  }
+}
+
+
+// ==================================================
+// COPY REFERRAL LINK
+// ==================================================
+
+async function copyReferral() {
+  const link = document.getElementById("referralLink").textContent;
+  const message = document.getElementById("referralMessage");
+  const button = document.getElementById("copyReferralButton");
+
+  if (!link.startsWith("https://")) {
+    message.textContent = "Referral link is not ready yet.";
+    return;
+  }
+
+  try {
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(link);
+    } else {
+      const temporaryInput = document.createElement("textarea");
+      temporaryInput.value = link;
+      temporaryInput.style.position = "fixed";
+      temporaryInput.style.opacity = "0";
+      document.body.appendChild(temporaryInput);
+      temporaryInput.select();
+
+      const copied = document.execCommand("copy");
+      temporaryInput.remove();
+
+      if (!copied) throw new Error("Copy failed");
+    }
+
+    button.textContent = "Copied!";
+    message.textContent = "Referral link copied successfully.";
+
+    setTimeout(() => {
+      button.textContent = "Copy";
+    }, 2000);
+
+  } catch (error) {
+    message.textContent = "Unable to copy. Please copy the link manually.";
+  }
+}
+
+
+// ==================================================
+// LOAD USER TASK HISTORY
+// ==================================================
+
+async function loadMySubmissions() {
+  if (!tg?.initData) return;
+
+  try {
+    const response = await fetch(`${API_BASE}/api/my-submissions`, {
+      headers: {
+        "X-Telegram-Init-Data": tg.initData
+      }
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) return;
+
+    const submissions = result.submissions || [];
+
+    const completed = submissions.filter(
+      item => item.status === "approved"
+    ).length;
+
+    document.getElementById("completedTasks").textContent = completed;
+    document.getElementById("profileCompletedTasks").textContent = completed;
+
+  } catch (error) {
+    console.error("Task history error:", error);
+  }
+}
+
+
+// ==================================================
+// WITHDRAWAL SUBMISSION
+// ==================================================
 
 document.getElementById("withdrawForm").addEventListener("submit", async function(e) {
   e.preventDefault();
@@ -629,16 +887,24 @@ document.getElementById("withdrawForm").addEventListener("submit", async functio
       throw new Error(result.detail || "Withdrawal request could not be submitted.");
     }
 
-    message.textContent = result.message || "Withdrawal request submitted for review.";
+    message.textContent =
+      result.message || "Withdrawal request submitted for review.";
+
     document.getElementById("withdrawForm").reset();
 
   } catch (error) {
-    message.textContent = error.message || "Could not connect to the withdrawal service.";
+    message.textContent =
+      error.message || "Could not connect to the withdrawal service.";
   } finally {
     submitButton.disabled = false;
     submitButton.textContent = "Submit withdrawal request";
   }
 });
+
+
+// ==================================================
+// TASK PROOF SUBMISSION
+// ==================================================
 
 document.getElementById("proofForm").addEventListener("submit", async function(e) {
   e.preventDefault();
@@ -682,24 +948,41 @@ document.getElementById("proofForm").addEventListener("submit", async function(e
   try {
     const response = await fetch(`${API_BASE}/api/submissions`, {
       method: "POST",
-      headers: { "X-Telegram-Init-Data": tg.initData },
+      headers: {
+        "X-Telegram-Init-Data": tg.initData
+      },
       body: data
     });
 
     const result = await response.json();
 
-    if (!response.ok) throw new Error(result.detail || "Submission failed.");
+    if (!response.ok) {
+      throw new Error(result.detail || "Submission failed.");
+    }
 
-    message.textContent = "Your proof was submitted and is awaiting review.";
+    message.textContent =
+      "Your proof was submitted and is awaiting review.";
+
     document.getElementById("proofForm").reset();
 
   } catch (error) {
-    message.textContent = error.message || "Could not submit proof. Please try again.";
+    message.textContent =
+      error.message || "Could not submit proof. Please try again.";
   } finally {
     submitButton.disabled = false;
     submitButton.textContent = "Submit Proof";
   }
 });
+
+
+// ==================================================
+// INITIAL DATA LOADING
+// ==================================================
+
+loadBalance();
+loadReferral();
+loadMySubmissions();
+
 </script>
 
 </body>
