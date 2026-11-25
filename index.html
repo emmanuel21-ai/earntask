@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,373 +8,297 @@
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
 <style>
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
+* { box-sizing: border-box; margin: 0; padding: 0; }
 
-:root {
-  --primary: #2563eb;
-  --dark: #172033;
-  --muted: #788397;
-  --bg: #f5f7fb;
-  --border: #e8edf4;
-  --green: #16a36a;
-}
+html { background: #f4f6f8; color-scheme: light; }
 
 body {
-  font-family: Arial, sans-serif;
-  background: var(--bg);
-  color: var(--dark);
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: #f4f6f8 !important;
+  color: #182230;
+  min-height: 100vh;
   padding-bottom: 90px;
 }
 
 header {
   background: white;
-  padding: 20px;
+  padding: 22px 20px;
   display: flex;
-  align-items: center;
   justify-content: space-between;
-  border-bottom: 1px solid var(--border);
+  align-items: center;
+  border-bottom: 1px solid #edf0f5;
 }
 
-.logo {
-  font-size: 22px;
-  font-weight: 800;
-  color: var(--primary);
-}
+.logo { font-size: 23px; font-weight: 800; color: #176b45; }
 
-.header-profile {
+.avatar {
   width: 38px;
   height: 38px;
   border-radius: 50%;
-  background: #e8efff;
-  color: var(--primary);
+  background: #e8f2ec;
+  color: #176b45;
   display: grid;
   place-items: center;
   font-weight: bold;
 }
 
-main {
-  padding: 18px;
-  max-width: 650px;
-  margin: auto;
+main { max-width: 600px; margin: auto; padding: 22px 18px; }
+
+.welcome { margin-bottom: 22px; }
+.welcome h2 { font-size: 23px; margin-bottom: 7px; }
+
+.welcome p, .task p, .muted {
+  color: #788397;
+  font-size: 13px;
+  line-height: 1.6;
 }
 
-.page {
-  display: none;
-}
-
-.page.active {
-  display: block;
-}
-
-.welcome {
-  margin: 12px 0 20px;
-}
-
-.welcome h2 {
-  font-size: 23px;
-  margin-bottom: 7px;
-}
-
-.welcome p {
-  color: var(--muted);
-  line-height: 1.5;
-}
-
-.balance-card {
-  background: linear-gradient(135deg, #2563eb, #1746b5);
+.balance {
+  background: #176b45;
   color: white;
-  border-radius: 18px;
+  border-radius: 17px;
   padding: 23px;
   margin-bottom: 20px;
 }
 
-.balance-card p {
-  opacity: .85;
-  font-size: 14px;
+.balance p { opacity: .8; font-size: 14px; }
+.balance h1 { font-size: 32px; margin: 10px 0; }
+.balance-minimum { margin-top: 12px; font-size: 12px !important; opacity: .85; }
+
+.balance-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-top: 17px;
 }
 
-.balance {
-  font-size: 32px;
-  font-weight: 800;
-  margin: 10px 0 18px;
+.withdraw-btn {
+  background: white;
+  color: #176b45;
+  padding: 12px 20px;
+  border-radius: 9px;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 13px;
+  margin-bottom: 25px;
+}
+
+.stat, .card, .task {
+  background: white;
+  padding: 18px;
+  border-radius: 14px;
+  border: 1px solid #edf0f5;
+}
+
+.stat p { color: #788397; font-size: 13px; }
+.stat h3 { font-size: 23px; margin-top: 8px; }
+
+.section-title { font-size: 18px; margin-bottom: 14px; }
+.task { margin-bottom: 15px; }
+.task h3 { font-size: 17px; margin-bottom: 9px; }
+.task p { margin-bottom: 12px; }
+
+.reward {
+  color: #176b45;
+  font-weight: bold;
+  margin: 13px 0;
 }
 
 button {
   border: none;
   cursor: pointer;
-  font-size: 14px;
-  font-weight: 700;
-}
-
-.withdraw-btn {
-  background: white;
-  color: var(--primary);
-  padding: 11px 18px;
   border-radius: 9px;
-}
-
-.card {
-  background: white;
-  border: 1px solid var(--border);
-  border-radius: 15px;
-  padding: 18px;
-  margin-bottom: 15px;
-}
-
-.card h3 {
-  margin-bottom: 9px;
-}
-
-.card p {
-  color: var(--muted);
-  line-height: 1.6;
+  padding: 12px 16px;
+  font-weight: bold;
   font-size: 14px;
 }
 
-.section-title {
-  font-size: 21px;
-  margin: 10px 0 17px;
+button:disabled { opacity: .6; cursor: not-allowed; }
+
+.primary {
+  background: #176b45;
+  color: white;
+  width: 100%;
+  display: block;
+  text-align: center;
+  text-decoration: none;
 }
 
-.task-card {
-  background: white;
-  border: 1px solid var(--border);
-  border-radius: 15px;
-  padding: 18px;
-  margin-bottom: 17px;
+.proof-btn {
+  width: 100%;
+  margin-top: 10px;
+  background: #e8f2ec;
+  color: #176b45;
 }
 
-.task-top {
+.tutorial { margin: 15px 0; }
+.tutorial h4 { margin-bottom: 10px; font-size: 14px; }
+
+.tutorial video {
+  display: block;
+  width: 100%;
+  height: auto;
+  min-height: 190px;
+  border-radius: 12px;
+  background: #111;
+  object-fit: contain;
+}
+
+.task-instructions {
+  padding-left: 20px;
+  margin: 12px 0;
+  color: #566176;
+  font-size: 13px;
+  line-height: 1.9;
+}
+
+.profile-row {
+  padding: 15px 0;
+  border-bottom: 1px solid #edf0f5;
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 12px;
-}
-
-.task-number {
-  color: var(--primary);
-  font-size: 12px;
-  font-weight: 800;
-}
-
-.reward {
-  color: var(--green);
-  background: #eaf9f1;
-  padding: 7px 10px;
-  border-radius: 8px;
-  font-size: 13px;
-  font-weight: bold;
-}
-
-.task-card h3 {
-  font-size: 18px;
-  margin-bottom: 8px;
-}
-
-.task-card p {
-  font-size: 14px;
-  color: var(--muted);
-  line-height: 1.6;
-  margin-bottom: 13px;
-}
-
-.primary-btn {
-  display: block;
-  width: 100%;
-  padding: 13px;
-  background: var(--primary);
-  color: white;
-  border-radius: 9px;
-  margin-top: 12px;
-}
-
-.secondary-btn {
-  display: block;
-  width: 100%;
-  padding: 12px;
-  background: #edf3ff;
-  color: var(--primary);
-  border-radius: 9px;
-  margin-top: 10px;
-}
-
-.video-section {
-  background: #f6f8fc;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 12px;
-  margin: 15px 0;
-}
-
-.video-section h4 {
-  font-size: 14px;
-  margin-bottom: 10px;
-}
-
-video {
-  width: 100%;
-  display: block;
-  border-radius: 9px;
-  background: #111;
-}
-
-.instructions {
-  background: #f7f9fc;
-  border-radius: 10px;
-  padding: 14px;
-  margin: 12px 0;
-}
-
-.instructions h4 {
-  margin-bottom: 10px;
+  gap: 12px;
   font-size: 14px;
 }
 
-.instructions ol {
-  padding-left: 20px;
-}
-
-.instructions li {
-  color: #536075;
-  font-size: 14px;
-  line-height: 1.7;
-  margin-bottom: 5px;
-}
-
-.profile-item {
-  padding: 13px 0;
-  border-bottom: 1px solid var(--border);
-}
-
-.profile-item:last-child {
-  border-bottom: none;
-}
-
-.profile-item small {
-  display: block;
-  color: var(--muted);
-  margin-bottom: 5px;
-}
-
-.profile-item strong {
-  font-size: 14px;
-  word-break: break-word;
-}
-
-.form-group {
-  margin-bottom: 16px;
-}
-
-.form-group label {
-  display: block;
-  font-size: 14px;
-  font-weight: bold;
-  margin-bottom: 8px;
-}
-
-.form-group input,
-.form-group textarea {
-  width: 100%;
-  padding: 13px;
-  border: 1px solid #dce3ed;
-  border-radius: 9px;
-  font-size: 14px;
-  outline: none;
-  background: white;
-}
-
-.form-group textarea {
-  min-height: 90px;
-  resize: vertical;
-}
+.profile-row span:first-child { color: #788397; }
+.profile-row span:last-child { text-align: right; overflow-wrap: anywhere; }
 
 .notice {
   background: #fff8e7;
-  color: #8a6415;
-  border: 1px solid #f4e5bb;
-  padding: 12px;
-  border-radius: 9px;
-  font-size: 13px;
+  color: #87651b;
+  padding: 13px;
+  border-radius: 10px;
+  font-size: 12px;
   line-height: 1.5;
-  margin-bottom: 16px;
+  margin-top: 15px;
 }
 
-.bottom-nav {
+.page { display: none; }
+.page.active { display: block; }
+
+nav {
   position: fixed;
   bottom: 0;
   left: 0;
   right: 0;
   background: white;
-  border-top: 1px solid var(--border);
+  border-top: 1px solid #edf0f5;
   display: flex;
   justify-content: space-around;
-  padding: 12px 5px;
+  padding: 12px 5px calc(12px + env(safe-area-inset-bottom));
   z-index: 10;
 }
 
-.nav-item {
+nav button {
+  background: transparent;
   color: #8993a5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  min-width: 75px;
+}
+
+nav button.active { color: #176b45; }
+.nav-icon { font-size: 20px; }
+
+footer {
   text-align: center;
-  font-size: 12px;
-  cursor: pointer;
-  flex: 1;
+  color: #9aa3b2;
+  font-size: 11px;
+  padding: 25px 0;
 }
 
-.nav-item span {
+.proof-modal, .withdraw-modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  background: rgba(15, 25, 40, .58);
+  padding: 20px;
+  align-items: center;
+  justify-content: center;
+}
+
+.proof-modal.show, .withdraw-modal.show { display: flex; }
+
+.proof-box, .withdraw-box {
+  background: white;
+  width: 100%;
+  max-width: 440px;
+  padding: 22px;
+  border-radius: 16px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.proof-box h2, .withdraw-box h2 { margin-bottom: 8px; }
+
+.proof-box label, .withdraw-box label {
   display: block;
-  font-size: 19px;
-  margin-bottom: 4px;
-}
-
-.nav-item.active {
-  color: var(--primary);
+  font-size: 13px;
   font-weight: bold;
+  margin: 15px 0 7px;
 }
 
-.back-btn {
-  background: none;
-  color: var(--primary);
-  margin-bottom: 15px;
-  font-size: 14px;
+.proof-box input, .proof-box textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #dce2eb;
+  border-radius: 9px;
+  font: inherit;
 }
 
-.status {
-  display: inline-block;
-  padding: 6px 9px;
-  border-radius: 7px;
-  background: #edf3ff;
-  color: var(--primary);
-  font-size: 12px;
-  font-weight: bold;
-}
+.proof-box textarea { min-height: 80px; resize: vertical; }
 
-.withdraw-summary {
-  background: #edf3ff;
-  border: 1px solid #dce8ff;
-  border-radius: 11px;
-  padding: 14px;
-  margin-bottom: 18px;
-}
+.withdraw-box { color: #182230; }
 
-.withdraw-summary strong {
+.withdraw-box input, .withdraw-box select {
   display: block;
-  color: var(--primary);
-  font-size: 19px;
-  margin-top: 5px;
+  width: 100%;
+  min-height: 46px;
+  padding: 12px 14px;
+  border: 1px solid #cbd5e1;
+  border-radius: 9px;
+  font-family: inherit;
+  font-size: 16px;
+  line-height: 1.4;
+  color: #182230 !important;
+  -webkit-text-fill-color: #182230;
+  caret-color: #176b45;
+  background: #fff !important;
+  opacity: 1;
 }
 
-.withdraw-help {
-  color: var(--muted);
+.withdraw-box input::placeholder {
+  color: #8993a5;
+  opacity: 1;
+}
+
+.withdraw-box input:focus, .withdraw-box select:focus {
+  border-color: #176b45;
+  outline: 2px solid rgba(23,107,69,.14);
+}
+
+.close-proof {
+  background: #edf0f5;
+  color: #465166;
+  width: 100%;
+  margin-top: 10px;
+}
+
+.proof-message, .withdraw-message {
+  margin-top: 12px;
   font-size: 13px;
   line-height: 1.5;
-  margin-top: 7px;
+  overflow-wrap: anywhere;
 }
-
 </style>
 </head>
 
@@ -381,475 +306,400 @@ video {
 
 <header>
   <div class="logo">◆ EarnTask</div>
-  <div class="header-profile" id="headerAvatar">U</div>
+  <div class="avatar" id="avatar">U</div>
 </header>
 
 <main>
 
-  <!-- HOME PAGE -->
-  <section class="page active" id="home">
+<section id="home" class="page active">
+  <div class="welcome">
+    <h2 id="welcome">Welcome to EarnTask!</h2>
+    <p>Explore available tasks, complete activities, submit your proof and get rewarded in USDT.</p>
+  </div>
 
-    <div class="welcome">
-      <h2>Welcome to EarnTask 👋</h2>
-      <p>Complete activities and submit your proof for review.</p>
+  <div class="balance">
+    <p>Available Balance</p>
+    <h1>0.00 USDT</h1>
+    <div class="balance-actions">
+      <p>Your task earnings</p>
+      <button class="withdraw-btn" onclick="withdraw()">Withdraw</button>
+    </div>
+    <p class="balance-minimum">Minimum withdrawal: $0.50 USDT</p>
+  </div>
+
+  <div class="stats">
+    <div class="stat">
+      <p>Completed Tasks</p>
+      <h3>0</h3>
+    </div>
+    <div class="stat">
+      <p>Available Tasks</p>
+      <h3>2</h3>
+    </div>
+  </div>
+
+  <h3 class="section-title">Getting Started</h3>
+  <div class="card">
+    <h3>How EarnTask works</h3>
+    <p class="muted" style="line-height:1.8; margin-top:10px;">
+      1. Browse available tasks.<br>
+      2. Choose a task.<br>
+      3. Complete the activity.<br>
+      4. Submit your proof.<br>
+      5. Wait for review.
+    </p>
+  </div>
+</section>
+
+<section id="tasks" class="page">
+  <h2 class="section-title">Available Tasks</h2>
+
+  <div class="task">
+    <h3>Task 01</h3>
+    <p>Complete the first task using the Telegram link below. Watch the video tutorial for guidance.</p>
+    <div class="reward">Reward: $0.40</div>
+
+    <div class="tutorial">
+      <h4>Task 01 Video Guide</h4>
+      <video id="task1Video" controls playsinline preload="metadata">
+        <source src="./task1-guide.mp4" type="video/mp4">
+        Your browser does not support video playback.
+      </video>
     </div>
 
-    <div class="balance-card">
-      <p>Demo Balance</p>
-      <div class="balance">0.00 USDT</div>
-      <button class="withdraw-btn" onclick="showPage('withdrawal')">
-        Withdraw
-      </button>
-    </div>
+    <a class="primary"
+       href="https://t.me/Crackpot_sport_bot?start=BF2D9C8B"
+       target="_blank" rel="noopener noreferrer">Start Task 01</a>
 
-    <div class="card">
-      <h3>Getting Started</h3>
-      <p>
-        Visit the Tasks page, choose an activity, follow its instructions
-        and submit your proof for review.
-      </p>
-      <button class="primary-btn" onclick="showPage('tasks')">
-        View Tasks
-      </button>
-    </div>
-
-    <div class="card">
-      <h3>Your Account</h3>
-      <p>View your Telegram account information and submission details.</p>
-      <button class="secondary-btn" onclick="showPage('profile')">
-        Open Profile
-      </button>
-    </div>
-
-  </section>
-
-  <!-- TASKS PAGE -->
-  <section class="page" id="tasks">
-
-    <h2 class="section-title">Available Tasks</h2>
-
-    <!-- TASK 1 -->
-    <div class="task-card">
-
-      <div class="task-top">
-        <span class="task-number">TASK 01</span>
-        <span class="reward">0.40 USDT</span>
-      </div>
-
-      <h3>Complete the First Activity</h3>
-
-      <p>
-        Open the task using the button below. Follow the activity
-        instructions and submit your proof for review.
-      </p>
-
-      <div class="video-section">
-        <h4>Task 01 Video Guide</h4>
-
-        <video controls playsinline preload="metadata">
-          <source src="task1-guide.mp4" type="video/mp4">
-          Your browser does not support video playback.
-        </video>
-
-        <p style="margin-top:10px;">
-          Watch the guide before starting Task 01.
-        </p>
-      </div>
-
-      <button class="primary-btn"
-        onclick="openTask('https://t.me/Crackpot_sport_bot?start=BF2D9C8B')">
-        Start Task 01
-      </button>
-
-      <button class="secondary-btn"
-        onclick="openProof('Task 01')">
-        Submit Task 01 Proof
-      </button>
-
-    </div>
-
-    <!-- TASK 2 -->
-    <div class="task-card">
-
-      <div class="task-top">
-        <span class="task-number">TASK 02</span>
-        <span class="reward">0.20 USDT</span>
-      </div>
-
-      <h3>Complete the Second Activity</h3>
-
-      <p>
-        Open the EarnVault activity and follow the steps listed below.
-      </p>
-
-      <div class="instructions">
-        <h4>Task 02 Instructions</h4>
-
-        <ol>
-          <li>Open the EarnVault Mini App using the button below.</li>
-          <li>Claim the available reward in the app.</li>
-          <li>Complete the daily check-in.</li>
-          <li>Complete the available social task.</li>
-          <li>Return to EarnTask and submit your proof for review.</li>
-        </ol>
-      </div>
-
-      <button class="primary-btn"
-        onclick="openTask('https://t.me/EarnVaultApp_bot/App?startapp=8059918348')">
-        Start Task 02
-      </button>
-
-      <button class="secondary-btn"
-        onclick="openProof('Task 02')">
-        Submit Task 02 Proof
-      </button>
-
-    </div>
-
-  </section>
-
-  <!-- PROFILE PAGE -->
-  <section class="page" id="profile">
-
-    <h2 class="section-title">My Profile</h2>
-
-    <div class="card">
-
-      <div style="text-align:center;padding:12px 0 20px;">
-        <div class="header-profile"
-          id="profileAvatar"
-          style="width:65px;height:65px;margin:auto;font-size:25px;">
-          U
-        </div>
-
-        <h3 id="profileName" style="margin-top:12px;">Telegram User</h3>
-        <p id="profileUsername">@username</p>
-      </div>
-
-      <div class="profile-item">
-        <small>Username</small>
-        <strong id="usernameValue">Not available</strong>
-      </div>
-
-      <div class="profile-item">
-        <small>First Name</small>
-        <strong id="firstNameValue">Not available</strong>
-      </div>
-
-      <div class="profile-item">
-        <small>Telegram ID</small>
-        <strong id="telegramIdValue">Not available</strong>
-      </div>
-
-      <div class="profile-item">
-        <small>Completed Tasks</small>
-        <strong>0</strong>
-      </div>
-
-      <div class="profile-item">
-        <small>Account Status</small>
-        <span class="status">Active</span>
-      </div>
-
-    </div>
-
-    <div class="card">
-      <h3>About EarnTask</h3>
-      <p>
-        EarnTask allows users to view activities and submit proof
-        for review. Displayed rewards are illustrative until a
-        verified payment system is implemented.
-      </p>
-    </div>
-
-  </section>
-
-  <!-- WITHDRAWAL PAGE -->
-  <section class="page" id="withdrawal">
-
-    <button class="back-btn" onclick="showPage('home')">
-      ← Back to Home
+    <button class="proof-btn" onclick="openProof('task01', 'Task 01')">
+      Submit Proof
     </button>
+  </div>
 
-    <h2 class="section-title">Withdraw Funds</h2>
+  <div class="task">
+    <h3>Task 02</h3>
+    <p>Open EarnVault and complete the following activities:</p>
+    <ol class="task-instructions">
+      <li>Open the EarnVault Telegram Mini App.</li>
+      <li>Claim the available reward.</li>
+      <li>Complete the daily check-in.</li>
+      <li>Complete the social task.</li>
+    </ol>
 
-    <div class="card">
-      <div class="withdraw-summary">
-        <p>Minimum withdrawal</p>
-        <strong>2.00 USDT</strong>
-        <p class="withdraw-help">Network: BEP20 (BNB Smart Chain)</p>
-      </div>
+    <div class="reward">Reward: $0.10</div>
 
-      <form id="withdrawForm">
+    <a class="primary"
+       href="https://t.me/EarnVaultApp_bot/App?startapp=8059918348"
+       target="_blank" rel="noopener noreferrer">Start Task 02</a>
 
-        <div class="form-group">
-          <label for="withdrawAmount">Withdrawal Amount (USDT)</label>
-          <input
-            type="number"
-            id="withdrawAmount"
-            min="2"
-            step="0.01"
-            placeholder="Enter amount (minimum 2 USDT)"
-            required
-          >
-        </div>
-
-        <div class="form-group">
-          <label for="withdrawWallet">BEP20 Wallet Address</label>
-          <input
-            type="text"
-            id="withdrawWallet"
-            placeholder="Enter your BEP20 wallet address"
-            autocomplete="off"
-            required
-          >
-        </div>
-
-        <p class="withdraw-help" style="margin-bottom:14px;">
-          Check that your wallet supports BEP20 before sending your request.
-          Withdrawal requests are reviewed manually.
-        </p>
-
-        <button class="primary-btn" type="submit">
-          Continue to Telegram
-        </button>
-
-      </form>
-    </div>
-
-  </section>
-
-  <!-- PROOF SUBMISSION PAGE -->
-  <section class="page" id="proof">
-
-    <button class="back-btn" onclick="showPage('tasks')">
-      ← Back to Tasks
+    <button class="proof-btn" onclick="openProof('task02', 'Task 02')">
+      Submit Proof
     </button>
+  </div>
 
-    <h2 class="section-title">Submit Your Proof</h2>
+  <div class="notice">
+    Rewards are proposed amounts. Submissions, verification, balance crediting and withdrawals require the backend and review system.
+  </div>
+</section>
 
-    <div class="card">
+<section id="profile" class="page">
+  <h2 class="section-title">My Profile</h2>
+  <div class="card">
+    <div class="profile-row"><span>Username</span><span id="username">@username</span></div>
+    <div class="profile-row"><span>First name</span><span id="firstname">User</span></div>
+    <div class="profile-row"><span>Telegram ID</span><span id="telegramid">Not available</span></div>
+    <div class="profile-row"><span>Completed tasks</span><span>0</span></div>
+    <div class="profile-row"><span>Account</span><span>Active</span></div>
+  </div>
+  <div class="notice">Your Telegram account information is displayed here.</div>
+</section>
 
-      <p style="margin-bottom:15px;">
-        Selected Task: <strong id="selectedTask">Task 01</strong>
+<div class="proof-modal" id="proofModal">
+  <div class="proof-box">
+    <h2>Submit Task Proof</h2>
+    <p class="muted" id="proofTaskName">Task 01</p>
+
+    <form id="proofForm">
+      <input type="hidden" id="proofTaskId" name="task_id">
+
+      <label for="proofFile">Upload screenshot</label>
+      <input type="file" id="proofFile" name="screenshot"
+             accept="image/png,image/jpeg,image/webp">
+
+      <label for="proofLink">Or enter a proof link</label>
+      <input type="url" id="proofLink" name="proof_url"
+             placeholder="https://example.com/proof">
+
+      <label for="proofNote">Additional information (optional)</label>
+      <textarea id="proofNote" name="note"
+                placeholder="Add details about your completed task"></textarea>
+
+      <p class="muted" style="margin-top:12px;">
+        Submit a screenshot or a proof link. Do not include passwords,
+        recovery phrases or private account information.
       </p>
 
-      <div class="notice">
-        This is a frontend demonstration form. It does not upload
-        your proof to a server or confirm a reward.
-      </div>
+      <button class="primary" type="submit" id="proofSubmit">Submit Proof</button>
+      <p class="proof-message" id="proofMessage"></p>
+    </form>
 
-      <form id="proofForm">
+    <button class="close-proof" onclick="closeProof()">Close</button>
+  </div>
+</div>
 
-        <div class="form-group">
-          <label for="telegramUsername">Telegram Username</label>
-          <input
-            type="text"
-            id="telegramUsername"
-            placeholder="@yourusername"
-            required
-          >
-        </div>
+<div class="withdraw-modal" id="withdrawModal" aria-hidden="true">
+  <div class="withdraw-box">
+    <h2>Request a withdrawal</h2>
+    <p class="muted">Minimum withdrawal is $0.50 USDT. Requests are subject to balance checks and review.</p>
 
-        <div class="form-group">
-          <label for="proofScreenshot">Upload Screenshot</label>
-          <input
-            type="file"
-            id="proofScreenshot"
-            accept="image/*"
-            required
-          >
-        </div>
+    <form id="withdrawForm">
+      <label for="withdrawAmount">Amount (USDT)</label>
+      <input id="withdrawAmount" name="amount" type="number"
+             min="0.50" step="0.01" placeholder="0.50" required>
 
-        <div class="form-group">
-          <label for="additionalInfo">Additional Information</label>
-          <textarea
-            id="additionalInfo"
-            placeholder="Add any information about your task..."
-          ></textarea>
-        </div>
+      <label for="withdrawNetwork">USDT network</label>
+      <select id="withdrawNetwork" name="network" required>
+        <option value="">Select network</option>
+        <option value="TRC20">TRON (TRC20)</option>
+        <option value="BEP20">BNB Smart Chain (BEP20)</option>
+        <option value="ERC20">Ethereum (ERC20)</option>
+      </select>
 
-        <button class="primary-btn" type="submit">
-          Submit Proof
-        </button>
+      <label for="withdrawWallet">Destination wallet address</label>
+      <input id="withdrawWallet" name="wallet_address" type="text"
+             autocomplete="off" placeholder="Enter your USDT wallet address" required>
 
-      </form>
+      <p class="muted" style="margin-top:12px;">
+        Choose the same network supported by your receiving wallet.
+        Never enter a password, recovery phrase or private key.
+      </p>
 
-    </div>
+      <button class="primary" id="withdrawSubmit" type="submit" style="margin-top:16px;">
+        Submit withdrawal request
+      </button>
+      <p class="withdraw-message" id="withdrawMessage" role="status"></p>
+    </form>
 
-  </section>
+    <button class="close-proof" type="button" onclick="closeWithdraw()">Close</button>
+  </div>
+</div>
 
+<footer>EarnTask © 2026</footer>
 </main>
 
-<!-- BOTTOM NAVIGATION -->
-<nav class="bottom-nav">
-
-  <div class="nav-item active" id="nav-home"
-    onclick="showPage('home')">
-    <span>⌂</span>
-    Home
-  </div>
-
-  <div class="nav-item" id="nav-tasks"
-    onclick="showPage('tasks')">
-    <span>▤</span>
-    Tasks
-  </div>
-
-  <div class="nav-item" id="nav-profile"
-    onclick="showPage('profile')">
-    <span>♙</span>
-    Profile
-  </div>
-
+<nav>
+  <button class="active" onclick="showPage('home', this)">
+    <span class="nav-icon">⌂</span>Home
+  </button>
+  <button onclick="showPage('tasks', this)">
+    <span class="nav-icon">▤</span>Tasks
+  </button>
+  <button onclick="showPage('profile', this)">
+    <span class="nav-icon">♙</span>Profile
+  </button>
 </nav>
 
 <script>
-
 const tg = window.Telegram?.WebApp;
 
 if (tg) {
   tg.ready();
   tg.expand();
+  try {
+    tg.setHeaderColor("#f4f6f8");
+    tg.setBackgroundColor("#f4f6f8");
+  } catch (error) {
+    console.log("Telegram theme colors could not be updated.", error);
+  }
 }
 
-let selectedTaskName = "Task 01";
+const user = tg?.initDataUnsafe?.user;
 
-function showPage(pageName) {
+if (user) {
+  const name = user.first_name || "User";
+  const username = user.username ? "@" + user.username : name;
 
-  document.querySelectorAll(".page").forEach(page => {
-    page.classList.remove("active");
+  document.getElementById("welcome").textContent =
+    "Welcome to EarnTask, " + name + "!";
+
+  document.getElementById("username").textContent = username;
+  document.getElementById("firstname").textContent = name;
+  document.getElementById("telegramid").textContent = user.id;
+  document.getElementById("avatar").textContent = name.charAt(0).toUpperCase();
+}
+
+function showPage(page, button) {
+  document.querySelectorAll(".page").forEach(section => {
+    section.classList.remove("active");
   });
 
-  document.getElementById(pageName).classList.add("active");
+  document.getElementById(page).classList.add("active");
 
-  document.querySelectorAll(".nav-item").forEach(item => {
-    item.classList.remove("active");
+  document.querySelectorAll("nav button").forEach(btn => {
+    btn.classList.remove("active");
   });
 
-  const nav = document.getElementById("nav-" + pageName);
-
-  if (nav) {
-    nav.classList.add("active");
-  }
-
+  button.classList.add("active");
   window.scrollTo(0, 0);
 }
 
-function openTask(url) {
+function withdraw() {
+  document.getElementById("withdrawForm").reset();
+  document.getElementById("withdrawMessage").textContent = "";
 
-  if (tg && tg.openTelegramLink) {
-    tg.openTelegramLink(url);
-  } else {
-    window.open(url, "_blank");
-  }
+  const modal = document.getElementById("withdrawModal");
+  modal.classList.add("show");
+  modal.setAttribute("aria-hidden", "false");
 
+  requestAnimationFrame(() => {
+    document.getElementById("withdrawAmount").focus();
+  });
 }
 
-function openProof(taskName) {
-
-  selectedTaskName = taskName;
-
-  document.getElementById("selectedTask").textContent = taskName;
-
-  showPage("proof");
+function closeWithdraw() {
+  document.getElementById("withdrawModal").classList.remove("show");
+  document.getElementById("withdrawModal").setAttribute("aria-hidden", "true");
 }
 
-// Load Telegram profile information
-function loadTelegramProfile() {
+const taskVideo = document.getElementById("task1Video");
 
-  const user = tg?.initDataUnsafe?.user;
-
-  if (!user) {
-    return;
-  }
-
-  const firstName = user.first_name || "Telegram User";
-
-  const username = user.username
-    ? "@" + user.username
-    : "Username unavailable";
-
-  const initials = firstName.charAt(0).toUpperCase();
-
-  document.getElementById("profileName").textContent = firstName;
-  document.getElementById("profileUsername").textContent = username;
-
-  document.getElementById("usernameValue").textContent = username;
-  document.getElementById("firstNameValue").textContent = firstName;
-
-  document.getElementById("telegramIdValue").textContent =
-    user.id || "Not available";
-
-  document.getElementById("headerAvatar").textContent = initials;
-  document.getElementById("profileAvatar").textContent = initials;
-
-  const usernameInput = document.getElementById("telegramUsername");
-
-  if (user.username) {
-    usernameInput.value = "@" + user.username;
-  }
-
-}
-
-// Proof form
-document.getElementById("proofForm").addEventListener("submit", function(e) {
-
-  e.preventDefault();
-
-  const username = document.getElementById("telegramUsername").value.trim();
-  const screenshot = document.getElementById("proofScreenshot").files[0];
-
-  if (!username || !screenshot) {
-    alert("Please enter your Telegram username and select a screenshot.");
-    return;
-  }
-
-  alert(
-    "Your form has been checked in this demonstration. " +
-    "Your proof has NOT been uploaded or submitted for review. " +
-    "A backend connection is required."
-  );
-
+taskVideo.addEventListener("error", function() {
+  console.log("Task 01 video could not be loaded. Check the MP4 file and its GitHub upload.");
 });
 
-// Manual withdrawal request
-document.getElementById("withdrawForm").addEventListener("submit", function(e) {
+const API_BASE = "http://127.0.0.1:8000";
 
+function openProof(taskId, taskName) {
+  document.getElementById("proofForm").reset();
+  document.getElementById("proofTaskId").value = taskId;
+  document.getElementById("proofTaskName").textContent = taskName;
+  document.getElementById("proofMessage").textContent = "";
+  document.getElementById("proofModal").classList.add("show");
+}
+
+function closeProof() {
+  document.getElementById("proofModal").classList.remove("show");
+}
+
+document.getElementById("withdrawForm").addEventListener("submit", async function(e) {
   e.preventDefault();
 
   const amount = Number(document.getElementById("withdrawAmount").value);
-  const wallet = document.getElementById("withdrawWallet").value.trim();
+  const network = document.getElementById("withdrawNetwork").value;
+  const walletAddress = document.getElementById("withdrawWallet").value.trim();
+  const message = document.getElementById("withdrawMessage");
+  const submitButton = document.getElementById("withdrawSubmit");
 
-  if (!Number.isFinite(amount) || amount < 2) {
-    alert("The minimum withdrawal amount is 2 USDT.");
+  if (!Number.isFinite(amount) || amount < 0.50) {
+    message.textContent = "The minimum withdrawal amount is 0.50 USDT.";
     return;
   }
 
-  if (!wallet) {
-    alert("Please enter your BEP20 wallet address.");
+  if (!network || !walletAddress) {
+    message.textContent = "Enter the wallet address and select its USDT network.";
     return;
   }
 
-  const message =
-    "EarnTask Withdrawal Request\n" +
-    "Amount: " + amount.toFixed(2) + " USDT\n" +
-    "Network: BEP20 (BNB Smart Chain)\n" +
-    "Wallet Address: " + wallet;
-
-  const shareUrl =
-    "https://t.me/share/url?url=&text=" + encodeURIComponent(message);
-
-  if (tg && typeof tg.openTelegramLink === "function") {
-    tg.openTelegramLink(shareUrl);
-  } else {
-    window.open(shareUrl, "_blank", "noopener,noreferrer");
+  if (!tg?.initData) {
+    message.textContent = "Open EarnTask through Telegram to request a withdrawal.";
+    return;
   }
 
+  submitButton.disabled = true;
+  submitButton.textContent = "Submitting...";
+  message.textContent = "";
+
+  try {
+    const response = await fetch(`${API_BASE}/api/withdrawals`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Telegram-Init-Data": tg.initData
+      },
+      body: JSON.stringify({
+        amount,
+        network,
+        wallet_address: walletAddress
+      })
+    });
+
+    const result = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+      throw new Error(result.detail || "Withdrawal request could not be submitted.");
+    }
+
+    message.textContent = result.message || "Withdrawal request submitted for review.";
+    document.getElementById("withdrawForm").reset();
+
+  } catch (error) {
+    message.textContent = error.message || "Could not connect to the withdrawal service.";
+  } finally {
+    submitButton.disabled = false;
+    submitButton.textContent = "Submit withdrawal request";
+  }
 });
 
-loadTelegramProfile();
+document.getElementById("proofForm").addEventListener("submit", async function(e) {
+  e.preventDefault();
 
+  const file = document.getElementById("proofFile").files[0];
+  const link = document.getElementById("proofLink").value.trim();
+  const message = document.getElementById("proofMessage");
+  const submitButton = document.getElementById("proofSubmit");
+
+  if (!file && !link) {
+    message.textContent = "Please upload a screenshot or enter a proof link.";
+    return;
+  }
+
+  if (file && !["image/png", "image/jpeg", "image/webp"].includes(file.type)) {
+    message.textContent = "Please select a PNG, JPG or WEBP image.";
+    return;
+  }
+
+  if (file && file.size > 5 * 1024 * 1024) {
+    message.textContent = "Your screenshot must be smaller than 5 MB.";
+    return;
+  }
+
+  if (!tg?.initData) {
+    message.textContent = "Please open EarnTask through Telegram to submit proof.";
+    return;
+  }
+
+  const data = new FormData();
+  data.append("task_id", document.getElementById("proofTaskId").value);
+  data.append("proof_url", link);
+  data.append("note", document.getElementById("proofNote").value);
+
+  if (file) data.append("screenshot", file);
+
+  submitButton.disabled = true;
+  submitButton.textContent = "Submitting...";
+  message.textContent = "";
+
+  try {
+    const response = await fetch(`${API_BASE}/api/submissions`, {
+      method: "POST",
+      headers: { "X-Telegram-Init-Data": tg.initData },
+      body: data
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) throw new Error(result.detail || "Submission failed.");
+
+    message.textContent = "Your proof was submitted and is awaiting review.";
+    document.getElementById("proofForm").reset();
+
+  } catch (error) {
+    message.textContent = error.message || "Could not submit proof. Please try again.";
+  } finally {
+    submitButton.disabled = false;
+    submitButton.textContent = "Submit Proof";
+  }
+});
 </script>
 
 </body>

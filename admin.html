@@ -1,0 +1,1166 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EarnTask Admin</title>
+
+<style>
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background: #f4f6fa;
+    color: #172033;
+    padding: 20px;
+}
+
+.container {
+    max-width: 1100px;
+    margin: auto;
+}
+
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+h1 {
+    font-size: 25px;
+}
+
+.subtitle {
+    color: #687386;
+    margin-top: 6px;
+    font-size: 14px;
+}
+
+.panel {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,.04);
+}
+
+input, select, textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #dce1e9;
+    border-radius: 7px;
+    margin-top: 8px;
+    margin-bottom: 12px;
+    font-size: 14px;
+    font-family: inherit;
+}
+
+textarea {
+    resize: vertical;
+    min-height: 75px;
+}
+
+label {
+    font-size: 13px;
+    font-weight: bold;
+}
+
+button {
+    border: 0;
+    border-radius: 7px;
+    padding: 11px 16px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+button:disabled {
+    opacity: .5;
+    cursor: not-allowed;
+}
+
+.primary {
+    background: #2563eb;
+    color: white;
+}
+
+.approve {
+    background: #16a34a;
+    color: white;
+}
+
+.reject {
+    background: #dc2626;
+    color: white;
+}
+
+.refresh {
+    background: #e8efff;
+    color: #2455bb;
+}
+
+.tabs {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+}
+
+.tab {
+    background: white;
+    color: #526078;
+    border: 1px solid #dce1e9;
+}
+
+.tab.active {
+    background: #2563eb;
+    color: white;
+    border-color: #2563eb;
+}
+
+.stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.stat {
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+}
+
+.stat strong {
+    display: block;
+    font-size: 27px;
+    margin-top: 10px;
+}
+
+.muted {
+    color: #718096;
+    font-size: 13px;
+}
+
+.submission, .withdrawal {
+    background: white;
+    border: 1px solid #e5e9f0;
+    padding: 18px;
+    border-radius: 10px;
+    margin-bottom: 14px;
+}
+
+.submission h3, .withdrawal h3 {
+    margin-bottom: 12px;
+}
+
+.submission p, .withdrawal p {
+    margin: 8px 0;
+    overflow-wrap: anywhere;
+    line-height: 1.5;
+}
+
+.status {
+    display: inline-block;
+    padding: 6px 10px;
+    border-radius: 20px;
+    background: #fff4d6;
+    color: #946200;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.status.approved {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.status.rejected {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.actions {
+    display: flex;
+    gap: 9px;
+    margin-top: 15px;
+    flex-wrap: wrap;
+}
+
+.proof-image {
+    display: block;
+    max-width: 100%;
+    max-height: 350px;
+    border-radius: 8px;
+    margin-top: 12px;
+}
+
+.message {
+    margin-top: 12px;
+    font-size: 14px;
+    color: #2563eb;
+    overflow-wrap: anywhere;
+}
+
+.hidden {
+    display: none !important;
+}
+
+.details {
+    background: #f7f9fc;
+    border: 1px solid #e5e9f0;
+    border-radius: 8px;
+    padding: 14px;
+    margin-top: 12px;
+}
+
+.details p {
+    margin: 9px 0;
+}
+
+.account-number {
+    font-weight: bold;
+    letter-spacing: 1px;
+    color: #1d4ed8;
+}
+
+.note-input {
+    margin-top: 14px;
+}
+
+.section-title {
+    margin-bottom: 15px;
+}
+
+@media(max-width: 600px) {
+    body {
+        padding: 12px;
+    }
+
+    .panel {
+        padding: 15px;
+    }
+
+    .stat {
+        padding: 15px;
+    }
+
+    .stat strong {
+        font-size: 23px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<header>
+    <div>
+        <h1>◆ EarnTask Admin</h1>
+        <p class="subtitle">Task and withdrawal management</p>
+    </div>
+
+    <button class="refresh" onclick="loadDashboard()">
+        Refresh Dashboard
+    </button>
+</header>
+
+
+<!-- ADMIN CONNECTION -->
+
+<div class="panel">
+
+    <h3>Admin connection</h3>
+
+    <label>Backend API address</label>
+
+    <input
+        id="apiUrl"
+        value="http://127.0.0.1:8000"
+        placeholder="Enter backend API address"
+    >
+
+    <label>Admin secret key</label>
+
+    <input
+        id="adminKey"
+        type="password"
+        placeholder="Enter your admin secret"
+        autocomplete="off"
+    >
+
+    <button class="primary" onclick="loadDashboard()">
+        Connect to dashboard
+    </button>
+
+    <p id="message" class="message"></p>
+
+</div>
+
+
+<!-- DASHBOARD STATISTICS -->
+
+<div class="stats">
+
+    <div class="stat">
+        <span class="muted">Total submissions</span>
+        <strong id="total">0</strong>
+    </div>
+
+    <div class="stat">
+        <span class="muted">Pending submissions</span>
+        <strong id="pending">0</strong>
+    </div>
+
+    <div class="stat">
+        <span class="muted">Approved submissions</span>
+        <strong id="approved">0</strong>
+    </div>
+
+    <div class="stat">
+        <span class="muted">Rejected submissions</span>
+        <strong id="rejected">0</strong>
+    </div>
+
+    <div class="stat">
+        <span class="muted">Total withdrawals</span>
+        <strong id="withdrawalTotal">0</strong>
+    </div>
+
+    <div class="stat">
+        <span class="muted">Pending withdrawals</span>
+        <strong id="withdrawalPending">0</strong>
+    </div>
+
+    <div class="stat">
+        <span class="muted">Approved withdrawals</span>
+        <strong id="withdrawalApproved">0</strong>
+    </div>
+
+    <div class="stat">
+        <span class="muted">Rejected withdrawals</span>
+        <strong id="withdrawalRejected">0</strong>
+    </div>
+
+</div>
+
+
+<!-- NAVIGATION TABS -->
+
+<div class="tabs">
+
+    <button
+        class="tab active"
+        id="tasksTab"
+        onclick="switchTab('tasks')"
+    >
+        Task Submissions
+    </button>
+
+    <button
+        class="tab"
+        id="withdrawalsTab"
+        onclick="switchTab('withdrawals')"
+    >
+        Withdrawals
+    </button>
+
+</div>
+
+
+<!-- TASK SUBMISSIONS -->
+
+<div id="tasksSection">
+
+    <div class="panel">
+
+        <h3 class="section-title">Task submissions</h3>
+
+        <select id="taskFilter" onchange="renderSubmissions()">
+
+            <option value="all">All submissions</option>
+
+            <option value="pending">Pending</option>
+
+            <option value="approved">Approved</option>
+
+            <option value="rejected">Rejected</option>
+
+        </select>
+
+        <div id="submissions">
+
+            <p class="muted">
+                Connect to your backend to view submissions.
+            </p>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- WITHDRAWAL MANAGEMENT -->
+
+<div id="withdrawalsSection" class="hidden">
+
+    <div class="panel">
+
+        <h3 class="section-title">Withdrawal requests</h3>
+
+        <p class="muted">
+            Review withdrawal requests and check the submitted bank details.
+        </p>
+
+        <select
+            id="withdrawalFilter"
+            onchange="renderWithdrawals()"
+        >
+
+            <option value="all">All withdrawals</option>
+
+            <option value="pending">Pending</option>
+
+            <option value="approved">Approved</option>
+
+            <option value="rejected">Rejected</option>
+
+        </select>
+
+        <div id="withdrawals">
+
+            <p class="muted">
+                Connect to your backend to view withdrawals.
+            </p>
+
+        </div>
+
+    </div>
+
+</div>
+
+</div>
+
+
+<script>
+
+// ==================================================
+// DATA
+// ==================================================
+
+let submissions = [];
+let withdrawals = [];
+
+
+// ==================================================
+// HELPERS
+// ==================================================
+
+function getApiUrl() {
+
+    return document
+        .getElementById("apiUrl")
+        .value
+        .trim()
+        .replace(/\/+$/, "");
+
+}
+
+
+function getAdminKey() {
+
+    return document
+        .getElementById("adminKey")
+        .value
+        .trim();
+
+}
+
+
+function showMessage(message) {
+
+    document.getElementById("message").textContent = message;
+
+}
+
+
+function escapeHTML(value) {
+
+    return String(value ?? "").replace(/[&<>"']/g, character => ({
+
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#039;"
+
+    })[character]);
+
+}
+
+
+function formatDate(timestamp) {
+
+    if (!timestamp) return "Not available";
+
+    const date = new Date(Number(timestamp) * 1000);
+
+    if (Number.isNaN(date.getTime())) {
+        return "Invalid date";
+    }
+
+    return date.toLocaleString();
+
+}
+
+
+function safeProofLink(value) {
+
+    try {
+
+        const url = new URL(value);
+
+        if (
+            url.protocol !== "https:" &&
+            url.protocol !== "http:"
+        ) {
+            return "";
+        }
+
+        return url.href;
+
+    } catch {
+
+        return "";
+
+    }
+
+}
+
+
+// ==================================================
+// SWITCH TABS
+// ==================================================
+
+function switchTab(tab) {
+
+    const tasksSection = document.getElementById("tasksSection");
+    const withdrawalsSection = document.getElementById("withdrawalsSection");
+
+    const tasksTab = document.getElementById("tasksTab");
+    const withdrawalsTab = document.getElementById("withdrawalsTab");
+
+    if (tab === "tasks") {
+
+        tasksSection.classList.remove("hidden");
+        withdrawalsSection.classList.add("hidden");
+
+        tasksTab.classList.add("active");
+        withdrawalsTab.classList.remove("active");
+
+    } else {
+
+        withdrawalsSection.classList.remove("hidden");
+        tasksSection.classList.add("hidden");
+
+        withdrawalsTab.classList.add("active");
+        tasksTab.classList.remove("active");
+
+    }
+
+}
+
+
+// ==================================================
+// LOAD DASHBOARD
+// ==================================================
+
+async function loadDashboard() {
+
+    const key = getAdminKey();
+
+    if (!key) {
+
+        showMessage("Enter your admin secret key.");
+
+        return;
+
+    }
+
+    if (!getApiUrl()) {
+
+        showMessage("Enter your backend API address.");
+
+        return;
+
+    }
+
+    showMessage("Connecting...");
+
+    try {
+
+        const headers = {
+            "X-Admin-Key": key
+        };
+
+        const results = await Promise.all([
+
+            fetch(
+                getApiUrl() + "/api/admin/submissions",
+                { headers }
+            ),
+
+            fetch(
+                getApiUrl() + "/api/admin/withdrawals",
+                { headers }
+            )
+
+        ]);
+
+        const [submissionResponse, withdrawalResponse] = results;
+
+        if (!submissionResponse.ok) {
+
+            throw new Error(
+                "Submissions: " + await submissionResponse.text()
+            );
+
+        }
+
+        if (!withdrawalResponse.ok) {
+
+            throw new Error(
+                "Withdrawals: " + await withdrawalResponse.text()
+            );
+
+        }
+
+        const submissionData = await submissionResponse.json();
+
+        const withdrawalData = await withdrawalResponse.json();
+
+        submissions = submissionData.submissions || [];
+
+        withdrawals = withdrawalData.withdrawals || [];
+
+        updateStats();
+
+        renderSubmissions();
+
+        renderWithdrawals();
+
+        showMessage("Connected successfully. Dashboard updated.");
+
+    } catch (error) {
+
+        showMessage("Connection failed: " + error.message);
+
+    }
+
+}
+
+
+// ==================================================
+// UPDATE STATISTICS
+// ==================================================
+
+function updateStats() {
+
+    document.getElementById("total").textContent =
+        submissions.length;
+
+    document.getElementById("pending").textContent =
+        submissions.filter(item => item.status === "pending").length;
+
+    document.getElementById("approved").textContent =
+        submissions.filter(item => item.status === "approved").length;
+
+    document.getElementById("rejected").textContent =
+        submissions.filter(item => item.status === "rejected").length;
+
+
+    document.getElementById("withdrawalTotal").textContent =
+        withdrawals.length;
+
+    document.getElementById("withdrawalPending").textContent =
+        withdrawals.filter(item => item.status === "pending").length;
+
+    document.getElementById("withdrawalApproved").textContent =
+        withdrawals.filter(item => item.status === "approved").length;
+
+    document.getElementById("withdrawalRejected").textContent =
+        withdrawals.filter(item => item.status === "rejected").length;
+
+}
+
+
+// ==================================================
+// RENDER TASK SUBMISSIONS
+// ==================================================
+
+function renderSubmissions() {
+
+    const container = document.getElementById("submissions");
+
+    const filter = document.getElementById("taskFilter").value;
+
+    const filtered = submissions.filter(item =>
+
+        filter === "all" || item.status === filter
+
+    );
+
+    if (!filtered.length) {
+
+        container.innerHTML =
+            "<p class='muted'>No submissions found.</p>";
+
+        return;
+
+    }
+
+    container.innerHTML = filtered.map(item => {
+
+        const proofLink = safeProofLink(item.proof_url);
+
+        return `
+
+        <div class="submission">
+
+            <h3>Submission #${item.id}</h3>
+
+            <p>
+                <b>Telegram username:</b>
+                @${escapeHTML(item.username || "Not provided")}
+            </p>
+
+            <p>
+                <b>Telegram ID:</b>
+                ${escapeHTML(item.telegram_id)}
+            </p>
+
+            <p>
+                <b>Task:</b>
+                ${escapeHTML(item.task_id)}
+            </p>
+
+            <p>
+                <b>Proof link:</b>
+
+                ${
+                    proofLink
+                    ? `<a href="${escapeHTML(proofLink)}"
+                         target="_blank"
+                         rel="noopener noreferrer">
+                         Open proof link
+                       </a>`
+                    : "Not provided"
+                }
+
+            </p>
+
+            <p>
+                <b>Additional information:</b>
+                ${escapeHTML(item.note || "None")}
+            </p>
+
+            <p>
+                <b>Submitted:</b>
+                ${formatDate(item.created_at)}
+            </p>
+
+            <p>
+                <b>Status:</b>
+
+                <span class="status ${escapeHTML(item.status)}">
+                    ${escapeHTML(item.status.toUpperCase())}
+                </span>
+            </p>
+
+            <div id="image-${item.id}"></div>
+
+            <div class="actions">
+
+                <button
+                    class="primary"
+                    onclick="viewScreenshot(${Number(item.id)})"
+                >
+                    View screenshot
+                </button>
+
+                <button
+                    class="approve"
+                    onclick="reviewSubmission(${Number(item.id)}, 'approved')"
+                    ${item.status !== "pending" ? "disabled" : ""}
+                >
+                    Approve
+                </button>
+
+                <button
+                    class="reject"
+                    onclick="reviewSubmission(${Number(item.id)}, 'rejected')"
+                    ${item.status !== "pending" ? "disabled" : ""}
+                >
+                    Reject
+                </button>
+
+            </div>
+
+        </div>
+
+        `;
+
+    }).join("");
+
+}
+
+
+// ==================================================
+// REVIEW TASK SUBMISSION
+// ==================================================
+
+async function reviewSubmission(id, status) {
+
+    const confirmation = confirm(
+        "Are you sure you want to mark submission #" +
+        id + " as " + status + "?"
+    );
+
+    if (!confirmation) return;
+
+    const formData = new FormData();
+
+    formData.append("status", status);
+
+    try {
+
+        const response = await fetch(
+
+            getApiUrl() +
+            "/api/admin/submissions/" +
+            id +
+            "/review",
+
+            {
+
+                method: "POST",
+
+                headers: {
+                    "X-Admin-Key": getAdminKey()
+                },
+
+                body: formData
+
+            }
+
+        );
+
+        if (!response.ok) {
+
+            throw new Error(await response.text());
+
+        }
+
+        showMessage("Submission #" + id + " updated.");
+
+        await loadDashboard();
+
+    } catch (error) {
+
+        showMessage("Review failed: " + error.message);
+
+    }
+
+}
+
+
+// ==================================================
+// VIEW TASK SCREENSHOT
+// ==================================================
+
+async function viewScreenshot(id) {
+
+    const imageContainer = document.getElementById("image-" + id);
+
+    if (!imageContainer) return;
+
+    imageContainer.textContent = "Loading screenshot...";
+
+    try {
+
+        const response = await fetch(
+
+            getApiUrl() +
+            "/api/admin/submissions/" +
+            id +
+            "/screenshot",
+
+            {
+
+                headers: {
+                    "X-Admin-Key": getAdminKey()
+                }
+
+            }
+
+        );
+
+        if (!response.ok) {
+
+            throw new Error("Screenshot unavailable.");
+
+        }
+
+        const imageBlob = await response.blob();
+
+        const imageUrl = URL.createObjectURL(imageBlob);
+
+        imageContainer.innerHTML = "";
+
+        const image = document.createElement("img");
+
+        image.src = imageUrl;
+
+        image.className = "proof-image";
+
+        image.alt = "Submitted task screenshot";
+
+        imageContainer.appendChild(image);
+
+    } catch (error) {
+
+        imageContainer.textContent = error.message;
+
+    }
+
+}
+
+
+// ==================================================
+// RENDER WITHDRAWALS
+// ==================================================
+
+function renderWithdrawals() {
+
+    const container = document.getElementById("withdrawals");
+
+    const filter = document.getElementById("withdrawalFilter").value;
+
+    const filtered = withdrawals.filter(item =>
+
+        filter === "all" || item.status === filter
+
+    );
+
+    if (!filtered.length) {
+
+        container.innerHTML =
+            "<p class='muted'>No withdrawal requests found.</p>";
+
+        return;
+
+    }
+
+    container.innerHTML = filtered.map(item => `
+
+        <div class="withdrawal">
+
+            <h3>Withdrawal #${Number(item.id)}</h3>
+
+            <p>
+                <b>Telegram username:</b>
+                @${escapeHTML(item.username || "Not provided")}
+            </p>
+
+            <p>
+                <b>Telegram ID:</b>
+                ${escapeHTML(item.telegram_id)}
+            </p>
+
+            <p>
+                <b>Amount requested:</b>
+                <b>${escapeHTML(item.amount)} USDT</b>
+            </p>
+
+            <p>
+                <b>Payment method:</b>
+                ${escapeHTML(item.payment_method)}
+            </p>
+
+            <div class="details">
+
+                <h4>Bank account details</h4>
+
+                <p>
+                    <b>Bank name:</b>
+                    ${escapeHTML(item.bank_name)}
+                </p>
+
+                <p>
+                    <b>Account name:</b>
+                    ${escapeHTML(item.account_name)}
+                </p>
+
+                <p>
+                    <b>Account number:</b>
+
+                    <span class="account-number">
+                        ${escapeHTML(item.account_number)}
+                    </span>
+                </p>
+
+            </div>
+
+            <p>
+                <b>Requested:</b>
+                ${formatDate(item.created_at)}
+            </p>
+
+            <p>
+                <b>Status:</b>
+
+                <span class="status ${escapeHTML(item.status)}">
+                    ${escapeHTML(item.status.toUpperCase())}
+                </span>
+            </p>
+
+            ${
+                item.reviewed_at
+                ? `<p><b>Reviewed:</b> ${formatDate(item.reviewed_at)}</p>`
+                : ""
+            }
+
+            ${
+                item.admin_note
+                ? `<p><b>Admin note:</b> ${escapeHTML(item.admin_note)}</p>`
+                : ""
+            }
+
+            ${
+                item.status === "pending"
+                ? `
+
+                <div class="note-input">
+
+                    <label for="note-${Number(item.id)}">
+                        Admin note (optional)
+                    </label>
+
+                    <textarea
+                        id="note-${Number(item.id)}"
+                        placeholder="Add a review note..."
+                    ></textarea>
+
+                </div>
+
+                <div class="actions">
+
+                    <button
+                        class="approve"
+                        onclick="reviewWithdrawal(${Number(item.id)}, 'approved')"
+                    >
+                        Approve withdrawal
+                    </button>
+
+                    <button
+                        class="reject"
+                        onclick="reviewWithdrawal(${Number(item.id)}, 'rejected')"
+                    >
+                        Reject withdrawal
+                    </button>
+
+                </div>
+
+                `
+                : ""
+            }
+
+        </div>
+
+    `).join("");
+
+}
+
+
+// ==================================================
+// REVIEW WITHDRAWAL
+// ==================================================
+
+async function reviewWithdrawal(id, status) {
+
+    const confirmation = confirm(
+
+        "Are you sure you want to mark withdrawal #" +
+        id + " as " + status + "?"
+
+    );
+
+    if (!confirmation) return;
+
+    const noteField = document.getElementById("note-" + id);
+
+    const adminNote = noteField ? noteField.value.trim() : "";
+
+    const formData = new FormData();
+
+    formData.append("status", status);
+
+    formData.append("admin_note", adminNote);
+
+    try {
+
+        const response = await fetch(
+
+            getApiUrl() +
+            "/api/admin/withdrawals/" +
+            id +
+            "/review",
+
+            {
+
+                method: "POST",
+
+                headers: {
+                    "X-Admin-Key": getAdminKey()
+                },
+
+                body: formData
+
+            }
+
+        );
+
+        if (!response.ok) {
+
+            throw new Error(await response.text());
+
+        }
+
+        showMessage("Withdrawal #" + id + " updated.");
+
+        await loadDashboard();
+
+        switchTab("withdrawals");
+
+    } catch (error) {
+
+        showMessage("Withdrawal review failed: " + error.message);
+
+    }
+
+}
+
+</script>
+
+</body>
+</html>
