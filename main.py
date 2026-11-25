@@ -6,6 +6,7 @@ import hashlib
 import sqlite3
 import secrets
 import time
+import math
 
 from pathlib import Path
 from urllib.parse import parse_qsl
@@ -31,8 +32,7 @@ from fastapi.responses import FileResponse
 
 BASE_DIR = Path(__file__).resolve().parent
 
-ENV_FILE = BASE_DIR / ".env"
-load_dotenv(dotenv_path=ENV_FILE)
+load_dotenv(dotenv_path=BASE_DIR / ".env")
 
 UPLOAD_DIR = BASE_DIR / "uploads"
 DATABASE = BASE_DIR / "earntask.db"
@@ -40,10 +40,16 @@ DATABASE = BASE_DIR / "earntask.db"
 UPLOAD_DIR.mkdir(exist_ok=True)
 
 BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "").strip()
+BOT_USERNAME = os.getenv(
+    "TELEGRAM_BOT_USERNAME", ""
+).strip().lstrip("@")
+
 ADMIN_SECRET = os.getenv("ADMIN_SECRET", "").strip()
 
 MAX_UPLOAD_SIZE = 5 * 1024 * 1024
 MAX_TEXT_LENGTH = 2000
+
+REFERRAL_BONUS = 0.20
 
 app = FastAPI(title="EarnTask API")
 
@@ -71,24 +77,22 @@ app.add_middleware(
 
 
 # ==================================================
-# DATABASE CONNECTION
+# DATABASE
 # ==================================================
 
 def get_db():
-    connection = sqlite3.connect(DATABASE)
+    connection = sqlite3.connect(
+        DATABASE,
+        timeout=30
+    )
     connection.row_factory = sqlite3.Row
     return connection
 
-
-# ==================================================
-# DATABASE TABLES
-# ==================================================
 
 def setup_database():
 
     with get_db() as connection:
 
-        # Task submissions
         connection.execute("""
             CREATE TABLE IF NOT EXISTS submissions (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -114,7 +118,6 @@ def setup_database():
             ON submissions(telegram_id)
         """)
 
-        # Withdrawal requests
         connection.execute("""
             CREATE TABLE IF NOT EXISTS withdrawals (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -142,6 +145,48 @@ def setup_database():
             ON withdrawals(telegram_id)
         """)
 
+        # Referral tracking
+        connection.execute("""
+            CREATE TABLE IF NOT EXISTS referrals (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                referrer_id TEXT NOT NULL,
+                referred_id TEXT NOT NULL UNIQUE,
+                created_at INTEGER NOT NULL,
+                CHECK (referrer_id != referred_id)
+            )
+        """)
+
+        connection.execute("""
+            CREATE INDEX IF NOT EXISTS idx_referrals_referrer
+            ON referrals(referrer_id)
+        """)
+
+        # Internal user balances
+        connection.execute("""
+            CREATE TABLE IF NOT EXISTS user_balances (
+                user_id TEXT PRIMARY KEY,
+                balance REAL NOT NULL DEFAULT 0
+            )
+        """)
+
+        # Referral bonus audit ledger
+        # One bonus per referred user
+        connection.execute("""
+            CREATE TABLE IF NOT EXISTS referral_bonuses (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                referrer_id TEXT NOT NULL,
+                referred_id TEXT NOT NULL UNIQUE,
+                submission_id INTEGER NOT NULL UNIQUE,
+                amount REAL NOT NULL,
+                created_at INTEGER NOT NULL
+            )
+        """)
+
+        connection.execute("""
+            CREATE INDEX IF NOT EXISTS idx_referral_bonuses_referrer
+            ON referral_bonuses(referrer_id)
+        """)
+
 
 setup_database()
 
@@ -165,7 +210,6 @@ def verify_telegram_data(init_data: str):
         )
 
     try:
-
         values = dict(
             parse_qsl(
                 init_data,
@@ -179,7 +223,6 @@ def verify_telegram_data(init_data: str):
             raise ValueError("Missing hash")
 
         auth_date = int(values.get("auth_date", "0"))
-
         current_time = int(time.time())
 
         if auth_date > current_time + 60:
@@ -262,7 +305,6 @@ def require_admin(admin_key: str):
 
 @app.get("/")
 def home():
-
     return {
         "app": "EarnTask API",
         "status": "online"
@@ -271,10 +313,7 @@ def home():
 
 @app.get("/health")
 def health():
-
-    return {
-        "status": "ok"
-    }
+    return {"status": "ok"}
 
 
 @app.get("/api/status")
@@ -290,12 +329,24 @@ def status():
             "SELECT COUNT(*) FROM withdrawals"
         ).fetchone()[0]
 
+        total_referrals = connection.execute(
+            "SELECT COUNT(*) FROM referrals"
+        ).fetchone()[0]
+
+        total_bonuses = connection.execute(
+            "SELECT COUNT(*) FROM referral_bonuses"
+        ).fetchone()[0]
+
     return {
         "status": "online",
         "proof_submissions": True,
         "total_submissions": total_submissions,
         "withdrawal_requests": True,
         "total_withdrawals": total_withdrawals,
+        "referrals": True,
+        "total_referrals": total_referrals,
+        "referral_bonuses": True,
+        "total_referral_bonuses": total_bonuses,
         "payments": False
     }
 
@@ -306,15 +357,10 @@ def status():
 
 @app.post("/api/submissions")
 async def submit_proof(
-
     task_id: str = Form(...),
-
     proof_url: str = Form(""),
-
     note: str = Form(""),
-
     screenshot: UploadFile | None = File(None),
-
     telegram_data: str = Header(
         default="",
         alias="X-Telegram-Init-Data"
@@ -323,10 +369,7 @@ async def submit_proof(
 
     user = verify_telegram_data(telegram_data)
 
-    allowed_tasks = [
-        "task01",
-        "task02"
-    ]
+    allowed_tasks = ["task01", "task02"]
 
     if task_id not in allowed_tasks:
         raise HTTPException(
@@ -369,9 +412,7 @@ async def submit_proof(
                 detail="Only JPG, PNG and WEBP images are allowed."
             )
 
-        content = await screenshot.read(
-            MAX_UPLOAD_SIZE + 1
-        )
+        content = await screenshot.read(MAX_UPLOAD_SIZE + 1)
 
         if len(content) > MAX_UPLOAD_SIZE:
             raise HTTPException(
@@ -393,8 +434,7 @@ async def submit_proof(
 
         screenshot_name = secrets.token_hex(16) + extension
 
-        screenshot_path = UPLOAD_DIR / screenshot_name
-        screenshot_path.write_bytes(content)
+        (UPLOAD_DIR / screenshot_name).write_bytes(content)
 
     with get_db() as connection:
 
@@ -436,12 +476,10 @@ async def submit_proof(
 
 @app.get("/api/my-submissions")
 def my_submissions(
-
     telegram_data: str = Header(
         default="",
         alias="X-Telegram-Init-Data"
     )
-
 ):
 
     user = verify_telegram_data(telegram_data)
@@ -460,9 +498,7 @@ def my_submissions(
             FROM submissions
             WHERE telegram_id = ?
             ORDER BY id DESC
-        """, (
-            str(user["id"]),
-        )).fetchall()
+        """, (str(user["id"]),)).fetchall()
 
     return {
         "submissions": [
@@ -477,12 +513,10 @@ def my_submissions(
 
 @app.get("/api/admin/submissions")
 def admin_submissions(
-
     admin_key: str = Header(
         default="",
         alias="X-Admin-Key"
     )
-
 ):
 
     require_admin(admin_key)
@@ -498,10 +532,8 @@ def admin_submissions(
     submissions = []
 
     for row in rows:
-
         item = dict(row)
         item.pop("screenshot", None)
-
         submissions.append(item)
 
     return {
@@ -516,14 +548,11 @@ def admin_submissions(
 
 @app.get("/api/admin/submissions/{submission_id}/screenshot")
 def admin_screenshot(
-
     submission_id: int,
-
     admin_key: str = Header(
         default="",
         alias="X-Admin-Key"
     )
-
 ):
 
     require_admin(admin_key)
@@ -534,9 +563,7 @@ def admin_screenshot(
             SELECT screenshot
             FROM submissions
             WHERE id = ?
-        """, (
-            submission_id,
-        )).fetchone()
+        """, (submission_id,)).fetchone()
 
     if not row or not row["screenshot"]:
         raise HTTPException(
@@ -561,16 +588,12 @@ def admin_screenshot(
 
 @app.post("/api/admin/submissions/{submission_id}/review")
 def review_submission(
-
     submission_id: int,
-
     status: str = Form(...),
-
     admin_key: str = Header(
         default="",
         alias="X-Admin-Key"
     )
-
 ):
 
     require_admin(admin_key)
@@ -583,15 +606,17 @@ def review_submission(
             detail="Status must be approved or rejected."
         )
 
+    # Use one transaction so the approval and bonus
+    # cannot become separated.
     with get_db() as connection:
 
+        connection.execute("BEGIN IMMEDIATE")
+
         existing = connection.execute("""
-            SELECT id, status
+            SELECT id, telegram_id, task_id, status
             FROM submissions
             WHERE id = ?
-        """, (
-            submission_id,
-        )).fetchone()
+        """, (submission_id,)).fetchone()
 
         if not existing:
             raise HTTPException(
@@ -615,11 +640,216 @@ def review_submission(
             submission_id
         ))
 
+        bonus_awarded = False
+
+        # Only approved Task 01 submissions qualify.
+        if status == "approved" and existing["task_id"] == "task01":
+
+            referred_id = str(existing["telegram_id"])
+
+            referral = connection.execute("""
+                SELECT referrer_id
+                FROM referrals
+                WHERE referred_id = ?
+            """, (referred_id,)).fetchone()
+
+            if referral:
+
+                referrer_id = str(referral["referrer_id"])
+
+                # The UNIQUE referred_id constraint ensures
+                # only one referral bonus per referred user.
+                cursor = connection.execute("""
+                    INSERT OR IGNORE INTO referral_bonuses (
+                        referrer_id,
+                        referred_id,
+                        submission_id,
+                        amount,
+                        created_at
+                    )
+                    VALUES (?, ?, ?, ?, ?)
+                """, (
+                    referrer_id,
+                    referred_id,
+                    submission_id,
+                    REFERRAL_BONUS,
+                    int(time.time())
+                ))
+
+                if cursor.rowcount == 1:
+
+                    connection.execute("""
+                        INSERT INTO user_balances (
+                            user_id,
+                            balance
+                        )
+                        VALUES (?, ?)
+                        ON CONFLICT(user_id)
+                        DO UPDATE SET balance = balance + excluded.balance
+                    """, (
+                        referrer_id,
+                        REFERRAL_BONUS
+                    ))
+
+                    bonus_awarded = True
+
     return {
         "success": True,
         "submission_id": submission_id,
         "status": status,
-        "message": "Submission review updated."
+        "referral_bonus_awarded": bonus_awarded,
+        "referral_bonus_amount": (
+            REFERRAL_BONUS if bonus_awarded else 0
+        ),
+        "message": (
+            "Submission approved and referral bonus credited."
+            if bonus_awarded
+            else "Submission review updated."
+        )
+    }
+
+
+# ==================================================
+# USER: ACCOUNT BALANCE
+# ==================================================
+
+@app.get("/api/account")
+def account(
+    telegram_data: str = Header(
+        default="",
+        alias="X-Telegram-Init-Data"
+    )
+):
+
+    user = verify_telegram_data(telegram_data)
+    user_id = str(user["id"])
+
+    with get_db() as connection:
+
+        row = connection.execute("""
+            SELECT balance
+            FROM user_balances
+            WHERE user_id = ?
+        """, (user_id,)).fetchone()
+
+    balance = float(row["balance"]) if row else 0.0
+
+    return {
+        "success": True,
+        "user_id": user_id,
+        "balance": round(balance, 2),
+        "currency": "USDT"
+    }
+
+
+# ==================================================
+# USER: REFERRAL INFORMATION
+# ==================================================
+
+@app.get("/api/referrals")
+def my_referrals(
+    telegram_data: str = Header(
+        default="",
+        alias="X-Telegram-Init-Data"
+    )
+):
+
+    user = verify_telegram_data(telegram_data)
+
+    if not BOT_USERNAME:
+        raise HTTPException(
+            status_code=503,
+            detail="Telegram bot username is not configured."
+        )
+
+    user_id = str(user["id"])
+
+    with get_db() as connection:
+
+        total_referrals = connection.execute("""
+            SELECT COUNT(*)
+            FROM referrals
+            WHERE referrer_id = ?
+        """, (user_id,)).fetchone()[0]
+
+        qualified_referrals = connection.execute("""
+            SELECT COUNT(*)
+            FROM referral_bonuses
+            WHERE referrer_id = ?
+        """, (user_id,)).fetchone()[0]
+
+        earnings = connection.execute("""
+            SELECT COALESCE(SUM(amount), 0)
+            FROM referral_bonuses
+            WHERE referrer_id = ?
+        """, (user_id,)).fetchone()[0]
+
+        balance_row = connection.execute("""
+            SELECT balance
+            FROM user_balances
+            WHERE user_id = ?
+        """, (user_id,)).fetchone()
+
+    balance = (
+        float(balance_row["balance"])
+        if balance_row else 0.0
+    )
+
+    referral_link = (
+        f"https://t.me/{BOT_USERNAME}?start={user_id}"
+    )
+
+    return {
+        "success": True,
+        "referral_link": referral_link,
+        "total_referrals": total_referrals,
+        "qualified_referrals": qualified_referrals,
+        "referral_earnings": round(float(earnings), 2),
+        "bonus_per_referral": REFERRAL_BONUS,
+        "balance": round(balance, 2),
+        "currency": "USDT"
+    }
+
+
+# ==================================================
+# ADMIN: VIEW REFERRAL BONUS LEDGER
+# ==================================================
+
+@app.get("/api/admin/referral-bonuses")
+def admin_referral_bonuses(
+    admin_key: str = Header(
+        default="",
+        alias="X-Admin-Key"
+    )
+):
+
+    require_admin(admin_key)
+
+    with get_db() as connection:
+
+        rows = connection.execute("""
+            SELECT
+                id,
+                referrer_id,
+                referred_id,
+                submission_id,
+                amount,
+                created_at
+            FROM referral_bonuses
+            ORDER BY id DESC
+        """).fetchall()
+
+        total = connection.execute("""
+            SELECT COALESCE(SUM(amount), 0)
+            FROM referral_bonuses
+        """).fetchone()[0]
+
+    return {
+        "bonuses": [
+            dict(row) for row in rows
+        ],
+        "total_bonuses": len(rows),
+        "total_amount": round(float(total), 2)
     }
 
 
@@ -629,27 +859,24 @@ def review_submission(
 
 @app.post("/api/withdrawals")
 def submit_withdrawal(
-
     amount: float = Form(...),
-
     payment_method: str = Form("bank_transfer"),
-
     bank_name: str = Form(...),
-
     account_name: str = Form(...),
-
     account_number: str = Form(...),
-
     telegram_data: str = Header(
         default="",
         alias="X-Telegram-Init-Data"
     )
-
 ):
 
     user = verify_telegram_data(telegram_data)
 
-    if amount != amount or amount <= 0 or amount > 100000000:
+    if (
+        not math.isfinite(amount)
+        or amount <= 0
+        or amount > 100000000
+    ):
         raise HTTPException(
             status_code=400,
             detail="Enter a valid withdrawal amount."
@@ -734,12 +961,10 @@ def submit_withdrawal(
 
 @app.get("/api/my-withdrawals")
 def my_withdrawals(
-
     telegram_data: str = Header(
         default="",
         alias="X-Telegram-Init-Data"
     )
-
 ):
 
     user = verify_telegram_data(telegram_data)
@@ -760,9 +985,7 @@ def my_withdrawals(
             FROM withdrawals
             WHERE telegram_id = ?
             ORDER BY id DESC
-        """, (
-            str(user["id"]),
-        )).fetchall()
+        """, (str(user["id"]),)).fetchall()
 
     return {
         "withdrawals": [
@@ -777,12 +1000,10 @@ def my_withdrawals(
 
 @app.get("/api/admin/withdrawals")
 def admin_withdrawals(
-
     admin_key: str = Header(
         default="",
         alias="X-Admin-Key"
     )
-
 ):
 
     require_admin(admin_key)
@@ -809,18 +1030,13 @@ def admin_withdrawals(
 
 @app.post("/api/admin/withdrawals/{withdrawal_id}/review")
 def review_withdrawal(
-
     withdrawal_id: int,
-
     status: str = Form(...),
-
     admin_note: str = Form(""),
-
     admin_key: str = Header(
         default="",
         alias="X-Admin-Key"
     )
-
 ):
 
     require_admin(admin_key)
@@ -846,9 +1062,7 @@ def review_withdrawal(
             SELECT id, status
             FROM withdrawals
             WHERE id = ?
-        """, (
-            withdrawal_id,
-        )).fetchone()
+        """, (withdrawal_id,)).fetchone()
 
         if not existing:
             raise HTTPException(
