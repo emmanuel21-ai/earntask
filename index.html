@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -357,10 +356,109 @@ footer {
   line-height: 1.5;
   overflow-wrap: anywhere;
 }
+
+/* OFFICIAL CHANNEL MEMBERSHIP GATE */
+
+.channel-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 22px;
+  background: rgba(12, 22, 34, .78);
+}
+
+.channel-modal.hidden { display: none; }
+
+.channel-box {
+  width: 100%;
+  max-width: 390px;
+  padding: 27px 22px;
+  border-radius: 18px;
+  background: #fff;
+  text-align: center;
+  box-shadow: 0 18px 60px rgba(0,0,0,.22);
+}
+
+.channel-logo {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 17px;
+  border-radius: 18px;
+  display: grid;
+  place-items: center;
+  background: #e8f2ec;
+  color: #176b45;
+  font-size: 30px;
+  font-weight: 800;
+}
+
+.channel-box h2 { font-size: 21px; margin-bottom: 10px; color: #182230; }
+
+.channel-box p {
+  color: #788397;
+  font-size: 13px;
+  line-height: 1.65;
+  margin-bottom: 17px;
+}
+
+.channel-join, .channel-continue {
+  display: block;
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+  text-align: center;
+}
+
+.channel-join {
+  background: #176b45;
+  color: white;
+  margin-bottom: 10px;
+}
+
+.channel-continue {
+  background: #e8f2ec;
+  color: #176b45;
+}
+
+.channel-continue:disabled { opacity: .6; }
+
+.channel-small {
+  min-height: 20px;
+  margin: 13px 0 0 !important;
+  font-size: 12px !important;
+  overflow-wrap: anywhere;
+}
 </style>
 </head>
 
 <body>
+
+<div class="channel-modal" id="channelModal" role="dialog" aria-modal="true" aria-labelledby="channelTitle">
+  <div class="channel-box">
+    <div class="channel-logo">◆</div>
+    <h2 id="channelTitle">Join the Official EarnTask Channel</h2>
+    <p>
+      To continue using EarnTask, join our official Telegram channel first.
+      After joining, return here and verify your membership.
+    </p>
+    <a class="channel-join" id="channelJoinLink"
+       href="https://t.me/earntask247" target="_blank" rel="noopener noreferrer">
+      Join Official Channel
+    </a>
+    <button class="channel-continue" id="verifyChannelButton" type="button">
+      I've joined — Verify membership
+    </button>
+    <p class="channel-small" id="channelStatus" role="status">
+      Checking your Telegram membership...
+    </p>
+  </div>
+</div>
 
 <header>
   <div class="logo">◆ EarnTask</div>
@@ -408,10 +506,8 @@ footer {
     </p>
   </div>
 
-  <!-- REFERRAL SECTION -->
   <div class="referral-card">
     <h4>Referral Bonus</h4>
-
     <p>
       Invite friends and earn $0.20 USDT when they
       complete Task 01 and their proof is approved.
@@ -422,7 +518,6 @@ footer {
       <div class="referral-link" id="referralLink">
         Loading referral link...
       </div>
-
       <button class="referral-copy" id="copyReferralButton" onclick="copyReferral()">
         Copy
       </button>
@@ -609,10 +704,78 @@ if (tg) {
 
 const user = tg?.initDataUnsafe?.user;
 
-// IMPORTANT:
-// Replace this with your deployed backend URL before publishing.
-// Keep localhost only for local testing.
 const API_BASE = "https://earntask-agid.onrender.com";
+
+const channelModal = document.getElementById("channelModal");
+const verifyChannelButton = document.getElementById("verifyChannelButton");
+const channelStatus = document.getElementById("channelStatus");
+
+let channelVerified = false;
+let channelCheckInProgress = false;
+
+function showChannelGate(message) {
+  channelModal.classList.remove("hidden");
+  if (message) channelStatus.textContent = message;
+}
+
+function hideChannelGate() {
+  channelModal.classList.add("hidden");
+}
+
+async function verifyChannelMembership() {
+  if (channelVerified || channelCheckInProgress) return;
+
+  if (!tg?.initData) {
+    showChannelGate("Please open EarnTask from its Telegram bot to verify your membership.");
+    return;
+  }
+
+  channelCheckInProgress = true;
+  verifyChannelButton.disabled = true;
+  verifyChannelButton.textContent = "Checking membership...";
+  channelStatus.textContent = "Please wait while we verify your membership.";
+
+  try {
+    const response = await fetch(`${API_BASE}/api/channel-membership`, {
+      method: "GET",
+      headers: {
+        "X-Telegram-Init-Data": tg.initData
+      },
+      cache: "no-store"
+    });
+
+    const result = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+      throw new Error(result.detail || "Membership verification failed. Please try again.");
+    }
+
+    if (result.is_member === true) {
+      channelVerified = true;
+      hideChannelGate();
+      channelStatus.textContent = "Membership verified.";
+      loadBalance();
+      loadReferral();
+      loadMySubmissions();
+    } else {
+      showChannelGate("We couldn't confirm your membership yet. Join the channel, then tap verify again.");
+    }
+  } catch (error) {
+    showChannelGate(error.message || "Could not verify membership. Please try again.");
+  } finally {
+    channelCheckInProgress = false;
+    verifyChannelButton.disabled = false;
+    verifyChannelButton.textContent = "I've joined — Verify membership";
+  }
+}
+
+verifyChannelButton.addEventListener("click", verifyChannelMembership);
+
+document.addEventListener("visibilitychange", function() {
+  if (document.visibilityState === "visible" && !channelVerified) {
+    verifyChannelMembership();
+  }
+});
 
 if (user) {
   const name = user.first_name || "User";
@@ -679,10 +842,7 @@ function closeProof() {
   document.getElementById("proofModal").classList.remove("show");
 }
 
-
-// ==================================================
 // LOAD AVAILABLE BALANCE
-// ==================================================
 
 async function loadBalance() {
   if (!tg?.initData) return;
@@ -708,10 +868,7 @@ async function loadBalance() {
   }
 }
 
-
-// ==================================================
 // LOAD REFERRAL INFORMATION
-// ==================================================
 
 async function loadReferral() {
   const linkElement = document.getElementById("referralLink");
@@ -757,10 +914,7 @@ async function loadReferral() {
   }
 }
 
-
-// ==================================================
 // COPY REFERRAL LINK
-// ==================================================
 
 async function copyReferral() {
   const link = document.getElementById("referralLink").textContent;
@@ -801,10 +955,7 @@ async function copyReferral() {
   }
 }
 
-
-// ==================================================
 // LOAD USER TASK HISTORY
-// ==================================================
 
 async function loadMySubmissions() {
   if (!tg?.initData) return;
@@ -834,10 +985,7 @@ async function loadMySubmissions() {
   }
 }
 
-
-// ==================================================
 // WITHDRAWAL SUBMISSION
-// ==================================================
 
 document.getElementById("withdrawForm").addEventListener("submit", async function(e) {
   e.preventDefault();
@@ -901,10 +1049,7 @@ document.getElementById("withdrawForm").addEventListener("submit", async functio
   }
 });
 
-
-// ==================================================
 // TASK PROOF SUBMISSION
-// ==================================================
 
 document.getElementById("proofForm").addEventListener("submit", async function(e) {
   e.preventDefault();
@@ -974,14 +1119,10 @@ document.getElementById("proofForm").addEventListener("submit", async function(e
   }
 });
 
+// INITIAL CHANNEL CHECK AND DATA LOADING
 
-// ==================================================
-// INITIAL DATA LOADING
-// ==================================================
-
-loadBalance();
-loadReferral();
-loadMySubmissions();
+showChannelGate("Checking your Telegram membership...");
+verifyChannelMembership();
 
 </script>
 
