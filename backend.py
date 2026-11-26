@@ -1,4 +1,3 @@
-
 import os
 import json
 import hmac
@@ -7,9 +6,11 @@ import secrets
 import time
 import subprocess
 import sys
+import urllib.request
+import urllib.error
 
 from pathlib import Path
-from urllib.parse import parse_qsl
+from urllib.parse import parse_qsl, urlencode
 
 import psycopg
 from psycopg.rows import dict_row
@@ -38,6 +39,11 @@ DATABASE_URL = os.getenv("DATABASE_URL", "").strip()
 BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "").strip()
 ADMIN_SECRET = os.getenv("ADMIN_SECRET", "").strip()
 BOT_USERNAME = os.getenv("BOT_USERNAME", "").strip().lstrip("@")
+
+CHANNEL_USERNAME = os.getenv(
+    "CHANNEL_USERNAME",
+    "earntask247"
+).strip().lstrip("@")
 
 MAX_UPLOAD_SIZE = 5 * 1024 * 1024
 
@@ -305,10 +311,84 @@ def get_balance(connection, telegram_id):
 
 
 # ==================================================
+# TELEGRAM CHANNEL MEMBERSHIP
+# ==================================================
+
+def check_channel_membership(telegram_user_id):
+
+    if not BOT_TOKEN:
+        raise HTTPException(
+            status_code=503,
+            detail="Telegram bot token is not configured."
+        )
+
+    if not CHANNEL_USERNAME:
+        raise HTTPException(
+            status_code=503,
+            detail="Official channel is not configured."
+        )
+
+    api_url = (
+        f"https://api.telegram.org/bot{BOT_TOKEN}/getChatMember?"
+        + urlencode({
+            "chat_id": f"@{CHANNEL_USERNAME}",
+            "user_id": str(telegram_user_id)
+        })
+    )
+
+    request = urllib.request.Request(
+        api_url,
+        headers={"User-Agent": "EarnTask/1.0"}
+    )
+
+    try:
+        with urllib.request.urlopen(request, timeout=15) as response:
+            result = json.loads(response.read().decode("utf-8"))
+
+        if not result.get("ok"):
+            raise HTTPException(
+                status_code=503,
+                detail=(
+                    "Telegram could not verify channel membership. "
+                    "Check that the bot is an administrator of the channel."
+                )
+            )
+
+        member = result.get("result", {})
+        status = member.get("status")
+
+        return (
+            status in ("creator", "administrator", "member")
+            or (
+                status == "restricted"
+                and member.get("is_member", False)
+            )
+        )
+
+    except HTTPException:
+        raise
+
+    except (urllib.error.URLError, TimeoutError):
+        raise HTTPException(
+            status_code=503,
+            detail="Unable to contact Telegram. Please try again."
+        )
+
+    except Exception:
+        raise HTTPException(
+            status_code=503,
+            detail="Unable to verify channel membership right now."
+        )
+
+
+# ==================================================
 # TELEGRAM AUTHENTICATION
 # ==================================================
 
-def verify_telegram_data(init_data: str):
+def verify_telegram_data(
+    init_data: str,
+    require_membership: bool = True
+):
 
     if not BOT_TOKEN:
         raise HTTPException(
@@ -370,6 +450,16 @@ def verify_telegram_data(init_data: str):
 
         if not user.get("id"):
             raise ValueError("Missing Telegram user ID")
+
+        if require_membership:
+            if not check_channel_membership(user["id"]):
+                raise HTTPException(
+                    status_code=403,
+                    detail=(
+                        "Join the official EarnTask Telegram channel "
+                        "to use the app."
+                    )
+                )
 
         return user
 
@@ -471,6 +561,38 @@ def status():
 
     finally:
         connection.close()
+
+
+# ==================================================
+# CHANNEL MEMBERSHIP VERIFICATION
+# ==================================================
+
+@app.get("/api/channel-membership")
+def channel_membership(
+    telegram_data: str = Header(
+        default="",
+        alias="X-Telegram-Init-Data"
+    )
+):
+
+    user = verify_telegram_data(
+        telegram_data,
+        require_membership=False
+    )
+
+    is_member = check_channel_membership(user["id"])
+
+    return {
+        "success": True,
+        "is_member": is_member,
+        "channel": f"@{CHANNEL_USERNAME}",
+        "channel_url": f"https://t.me/{CHANNEL_USERNAME}",
+        "message": (
+            "Membership verified."
+            if is_member
+            else "Please join the official EarnTask channel."
+        )
+    }
 
 
 # ==================================================
